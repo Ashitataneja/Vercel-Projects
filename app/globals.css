@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-blue-700: #006bb9;
+  --color-blue-900: #003f6e;
+  --color-sky: #30a0e0;
+  --color-butter: #ffc973;
+  --color-cream: #ffe3b3;
+  --color-paper: #fff6e6;
+  --color-ink: #13233a;
+  --color-ink-soft: #2a3d58;
+  --color-pin: #d9482b;
+  --color-red: #d9482b;
+  --color-wood: #c8662e;
+  --color-wood-dark: #8a3f1c;
+  --color-green: #4e9a4b;
+  --color-green-dark: #2f6b33;
+
+  --font-display: "Anton SC", "Impact", sans-serif;
+  --font-sans: "Funnel Sans Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Visible, consistent focus everywhere */
+:focus-visible {
+  outline: 3px solid var(--color-butter);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Comic halftone dots */
+.halftone {
+  background-image: radial-gradient(rgb(19 35 58 / 0.2) 1.2px, transparent 1.7px);
+  background-size: 7px 7px;
+}
+.halftone-light {
+  background-image: radial-gradient(rgb(255 246 230 / 0.35) 1.2px, transparent 1.7px);
+  background-size: 6px 6px;
+}
+.floorboards {
+  background-color: var(--color-wood);
+  background-image:
+    radial-gradient(rgb(19 35 58 / 0.18) 1.2px, transparent 1.7px),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgb(19 35 58 / 0.55) 118px 121px);
+  background-size: 7px 7px, auto;
+}
+
+@keyframes tick {
+  to { transform: rotate(360deg); }
+}
+.clock-hand {
+  transform-origin: 50% 50%;
+  transform-box: view-box;
+  animation: tick 60s steps(60) infinite;
+}
+
+/* Scan lines on the TV screen */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.05) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+@keyframes city-pan {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.city-pan {
+  animation: city-pan 40s linear infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+.rec-blink {
+  animation: blink 1.6s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .city-pan,
+  .rec-blink,
+  .clock-hand {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
