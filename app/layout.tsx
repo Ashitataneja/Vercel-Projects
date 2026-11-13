@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource/anton-sc/400.css";
 import "@fontsource-variable/funnel-sans";
+import "@fontsource/caveat/600.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

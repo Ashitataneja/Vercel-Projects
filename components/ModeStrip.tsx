@@ -35,7 +35,7 @@ export default function ModeStrip({ current, variant = "dock" }: Props) {
               <Link
                 href={m.href}
                 aria-current={active ? "page" : undefined}
-                aria-label={m.href === "/" ? "TV (home)" : undefined}
+                aria-label={m.href === "/" ? "Home: the street" : undefined}
                 className={`flex min-h-11 min-w-11 items-center justify-center rounded-full px-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors min-[400px]:text-[12px] sm:px-4 sm:text-[13px] sm:tracking-[0.14em] ${
                   active
                     ? "bg-butter text-ink"

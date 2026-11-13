@@ -1,5 +1,5 @@
-import TV from "@/components/TV";
+import Street from "@/components/world/Street";
 
 export default function Home() {
-  return <TV />;
+  return <Street />;
 }

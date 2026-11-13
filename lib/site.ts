@@ -7,11 +7,12 @@ export type Mode = {
 
 /** Camera-style modes. Order matches the strip, left to right. */
 export const modes: Mode[] = [
-  { href: "/", label: "TV", name: "Home" },
+  { href: "/", label: "Home", name: "Home" },
   { href: "/work", label: "Work", name: "Work" },
-  { href: "/about", label: "About me", name: "About me" },
-  { href: "/contact", label: "Contact", name: "Contact" },
+  { href: "/about", label: "About", name: "About me" },
+  { href: "/tv", label: "TV", name: "TV" },
   { href: "/blog", label: "Blog", name: "Blog" },
+  { href: "/contact", label: "Contact", name: "Contact" },
 ];
 
 /* ------------------------------------------------------------------ */
