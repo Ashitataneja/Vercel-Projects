@@ -49,7 +49,7 @@ function useClicks(muted: boolean) {
   );
 }
 
-export default function RotaryPhone() {
+export default function RotaryPhone({ layout }: { layout: (phone: React.ReactNode, legend: React.ReactNode) => React.ReactNode }) {
   const reduce = useReducedMotion();
   const rot = useMotionValue(0);
   const dialRef = useRef<HTMLDivElement>(null);
@@ -189,10 +189,8 @@ export default function RotaryPhone() {
   const entry = status.kind !== "idle" ? directory.find((x) => x.digit === status.digit) : undefined;
   const lifted = status.kind === "ringing" || status.kind === "connected";
 
-  return (
-    <div className="flex flex-col items-center">
-      {/* the telephone: sized to the screen so it's always fully in view */}
-      <div className="relative w-[min(520px,86vw,58dvh)]">
+  const phone = (
+      <div className="relative w-full [container-type:inline-size]">
         <PhoneBody lifted={lifted} reduce={!!reduce} />
 
         <div
@@ -216,7 +214,7 @@ export default function RotaryPhone() {
             );
           })}
 
-          {/* finger wheel: tinted glass with two holes */}
+          {/* finger wheel: tinted glass with one hole per destination */}
           <motion.div className="absolute inset-[6%] rounded-full" style={{ rotate: rot }}>
             <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
               <defs>
@@ -277,6 +275,22 @@ export default function RotaryPhone() {
             </span>
           </div>
 
+          {/* what each hole calls: tags just outside the rim */}
+          {DIGITS.map((d) => {
+            const a = rad(holeAngle(d));
+            const e = directory.find((x) => x.digit === d)!;
+            return (
+              <span
+                key={`tag-${d}`}
+                aria-hidden="true"
+                className="pointer-events-none absolute w-max -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f6eedc] px-2 py-0.5 text-[clamp(10px,2.4cqw,14px)] font-bold text-[#3b2b24] shadow-[0_2px_6px_rgb(0_0_0/0.25)]"
+                style={{ left: `${50 + Math.cos(a) * 64}%`, top: `${50 + Math.sin(a) * 64}%` }}
+              >
+                {d} · {e.label}
+              </span>
+            );
+          })}
+
           {/* chrome finger stop */}
           <span
             aria-hidden="true"
@@ -291,9 +305,10 @@ export default function RotaryPhone() {
           />
         </div>
       </div>
-
-      {/* what's on the line, and the same two numbers as plain links */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-3" aria-live="polite">
+  );
+  // What's on the line, and the same numbers as plain links.
+  const legend = (
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3" aria-live="polite">
         {status.kind === "idle" ? (
           directory.map((e) => (
             <a
@@ -301,14 +316,14 @@ export default function RotaryPhone() {
               href={e.href}
               target={e.href.startsWith("http") ? "_blank" : undefined}
               rel="noopener"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border-[3px] border-ink bg-paper px-4 text-sm font-bold shadow-[3px_3px_0_var(--color-ink)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#f6eedc] px-4 text-sm font-bold text-[#3b2b24] shadow-[0_6px_16px_rgb(0_0_0/0.3)]"
             >
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-red font-display text-sm text-paper">{e.digit}</span>
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-[#b83a22] font-display text-sm text-[#f6eedc]">{e.digit}</span>
               {e.label}
             </a>
           ))
         ) : (
-          <p className="min-h-11 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper">
+          <p className="min-h-11 rounded-full bg-[#1c1b1d]/90 px-5 py-2.5 text-sm font-semibold text-[#f6eedc]">
             {status.kind === "dialling" && `Dialling ${status.digit}…`}
             {status.kind === "ringing" && `Ringing ${entry?.label}…`}
             {status.kind === "connected" && entry && (
@@ -326,13 +341,13 @@ export default function RotaryPhone() {
           onClick={toggleMute}
           aria-pressed={!muted}
           aria-label={muted ? "Turn dial sound on" : "Turn dial sound off"}
-          className="grid h-11 w-11 place-items-center rounded-full border-[3px] border-ink bg-paper text-base"
+          className="grid h-11 w-11 place-items-center rounded-full bg-[#f6eedc] text-base shadow-[0_6px_16px_rgb(0_0_0/0.3)]"
         >
           <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span>
         </button>
       </div>
-    </div>
   );
+  return <>{layout(phone, legend)}</>;
 }
 
 /** The telephone body, with a coiled cord that runs from the base into the handset. */

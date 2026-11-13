@@ -64,6 +64,15 @@ body {
 .sticker-walk-left { animation: sticker-walk-left 0.55s ease-in-out infinite; }
 .sticker-hop { animation: sticker-hop 1.4s ease-in-out 3; }
 
+/* TV static while changing channel */
+@keyframes static-shift { to { background-position: 40px 30px, 12px 20px; } }
+.tv-static {
+  background-image: radial-gradient(rgb(255 255 255 / 0.85) 1px, transparent 1.5px), radial-gradient(rgb(0 0 0 / 0.9) 1px, transparent 1.5px);
+  background-size: 5px 5px, 7px 7px;
+  background-color: #8a8a8a;
+  animation: static-shift 0.12s steps(3) infinite;
+}
+
 /* Street and road: the ground line sits higher on tall, narrow screens */
 .street-road { height: 26%; }
 .street-ground { bottom: 25%; }

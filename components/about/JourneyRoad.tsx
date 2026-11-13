@@ -1,48 +1,33 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform } from "framer-motion";
 import Avatar from "../world/Avatar";
 import HandNote from "../world/HandNote";
 import Signboard from "../world/Signboard";
+import Road from "../world/Road";
 import ModeStrip from "../ModeStrip";
-import Landmark from "./Landmarks";
 import { journey } from "@/lib/site";
+import { downloadMemoryCard } from "@/lib/memoryCard";
 
 /*
- * About me as a road. The visitor walks Ashita along it (scroll, drag,
- * swipe, arrow keys or the Walk on button); each landmark is a chapter.
- * Same "u" unit and camera model as the street on the home page.
+ * About me as a road trip through Ashita's painted scenes.
+ * Everything is measured in "u" (CSS var --u = min(1dvh, 1.8vw)); scenes are
+ * 76u tall and as wide as their painting. The avatar stays put on screen and
+ * walks while the world slides by (scroll, drag, swipe, arrow keys, buttons).
  */
-/** What each signboard says: the field, then the place. */
-const SHORT: Record<string, string> = {
-  sbsc: "Commerce · SBSC",
-  kpmg: "Audit · KPMG",
-  psychology: "MA Psychology",
-  sociowash: "Marketing · Sociowash",
-  "woovly-freelance": "Design · Woovly + freelance",
-  karnival: "Product · Karnival",
-  iitj: "M.Des · IIT Jodhpur",
-}
-
-/** A painted Delhi scene behind each stop (the last stop, Jodhpur, is drawn). Widths in u; panels are 76u tall. */
-const SCENE: Record<string, { src?: string; w: number }> = {
-  sbsc: { src: "/world/chandnichowk.webp", w: 135 },
-  kpmg: { src: "/world/cp.webp", w: 135 },
-  psychology: { src: "/world/lodhi.webp", w: 135 },
-  sociowash: { src: "/world/indiagate.webp", w: 135 },
-  "woovly-freelance": { src: "/world/street.webp", w: 203 },
-  karnival: { src: "/world/qutub.webp", w: 135 },
-  iitj: { w: 120 },
-};
-const LEAD = 30; // u of open road before the first scene
-const panelLeft = (i: number) => LEAD + journey.slice(0, i).reduce((a, s) => a + SCENE[s.id].w, 0);
-const START = 10;
-const stand = (i: number) => panelLeft(i) + 16;
+const H = 76; // scene height in u
+const START_SCENE = { scene: "/world/journey/delhi.webp", ratio: 2048 / 768 };
+const RATIO: Record<string, number> = { sbsc: 2172 / 724 };
+const width = (id: string) => H * (RATIO[id] ?? 2048 / 768);
+const LEAD = H * START_SCENE.ratio; // Delhi, where the walk begins
+const panelLeft = (i: number) => LEAD + journey.slice(0, i).reduce((a, s) => a + width(s.id), 0);
+const stand = (i: number) => panelLeft(i) + 34;
+const START = 30;
 const TRACK = panelLeft(journey.length);
 const u = (n: number) => `calc(var(--u) * ${n})`;
+const ROUTE = ["Delhi", ...journey.map((s) => s.sign.split(" · ")[1] ?? s.sign)];
 
 export default function JourneyRoad() {
   const reduce = useReducedMotion();
@@ -53,11 +38,12 @@ export default function JourneyRoad() {
   const [avatarFrac, setAvatarFrac] = useState(0.3);
   const cam = useMotionValue(0);
   const worldX = useTransform(cam, (c) => -c);
-    const [here, setHere] = useState(START);
+  const [here, setHere] = useState(START);
   const [walking, setWalking] = useState(false);
   const [facing, setFacing] = useState<"left" | "right">("right");
   const [reached, setReached] = useState(-1);
   const [overview, setOverview] = useState(false);
+  const [saving, setSaving] = useState(false);
   const stopTimer = useRef<number | undefined>(undefined);
   const drag = useRef<{ x: number; moved: boolean } | null>(null);
   const ready = useRef(false);
@@ -65,13 +51,15 @@ export default function JourneyRoad() {
 
   const bounds = useCallback(() => {
     const w = mainRef.current?.clientWidth ?? 1000;
-    const ax = w * frac.current;
-    return { ax, min: START * unit.current - ax - 4 * unit.current, max: TRACK * unit.current - ax };
+    return { ax: w * frac.current, min: 0, max: TRACK * unit.current - w };
   }, []);
-  const clamp = useCallback((v: number) => {
-    const b = bounds();
-    return Math.min(b.max, Math.max(b.min, v));
-  }, [bounds]);
+  const clamp = useCallback(
+    (v: number) => {
+      const b = bounds();
+      return Math.min(b.max, Math.max(b.min, v));
+    },
+    [bounds],
+  );
 
   useEffect(() => {
     function measure() {
@@ -101,7 +89,7 @@ export default function JourneyRoad() {
     setHere(pos);
     let r = -1;
     journey.forEach((_, i) => {
-      if (pos >= stand(i) - 8) r = i;
+      if (pos >= stand(i) - 10) r = i;
     });
     setReached((old) => Math.max(old, r));
   });
@@ -111,17 +99,16 @@ export default function JourneyRoad() {
       const target = clamp(worldU * unit.current - bounds().ax);
       const dist = Math.abs(target - cam.get());
       if (reduce || dist < 2) return cam.set(target);
-      animate(cam, target, { duration: Math.min(2.2, 0.4 + dist / 800), ease: [0.45, 0, 0.55, 1] });
+      animate(cam, target, { duration: Math.min(2.4, 0.45 + dist / 900), ease: [0.45, 0, 0.55, 1] });
     },
     [bounds, cam, clamp, reduce],
   );
 
-  const at = journey.findIndex((_, i) => Math.abs(here - stand(i)) < 14);
+  const at = journey.findIndex((_, i) => Math.abs(here - stand(i)) < 18);
   const showCard = !walking && !overview;
   const next = at >= 0 ? at + 1 : journey.findIndex((_, i) => stand(i) > here);
   const prev = at >= 0 ? at - 1 : -1;
 
-  // Input: wheel and keys move the camera; arrow keys hop between stops.
   useEffect(() => {
     const el = mainRef.current;
     if (!el) return;
@@ -146,17 +133,29 @@ export default function JourneyRoad() {
     return () => window.removeEventListener("keydown", onKey);
   }, [next, prev, walkTo, overview]);
 
-  // Focus the stop's heading on arrival so keyboard and screen-reader users follow the walk.
   useEffect(() => {
     if (at >= 0 && showCard) cardRef.current?.focus({ preventScroll: true });
   }, [at, showCard]);
 
   const stop = at >= 0 ? journey[at] : null;
 
+  async function keepMemory() {
+    if (!stop) return;
+    setSaving(true);
+    try {
+      await downloadMemoryCard(
+        { scene: stop.scene, title: stop.place.split(",")[0], subtitle: `${stop.role} · ${stop.when}`, route: { names: ROUTE, at: at + 1 } },
+        `ashita-${stop.id}-memory.png`,
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <main
       ref={mainRef}
-      className="relative h-dvh touch-pan-y select-none overflow-clip bg-sky [--u:min(1dvh,1.8vw)]"
+      className="relative h-dvh touch-pan-y select-none overflow-clip bg-[#1c1b1d] [--u:min(1dvh,1.8vw)]"
       onPointerDown={(e) => {
         if ((e.target as HTMLElement).closest("button, a, [data-card]")) return;
         drag.current = { x: e.clientX, moved: false };
@@ -177,93 +176,54 @@ export default function JourneyRoad() {
     >
       <div ref={probeRef} aria-hidden="true" className="invisible absolute h-0" style={{ width: u(100) }} />
 
-
-      {/* the road and the stops */}
-      <motion.div className="absolute inset-y-0 left-0" style={{ x: worldX, width: u(TRACK + 120) }}>
-        {/* the road before the first stop */}
-        <div aria-hidden="true" className="street-ground absolute overflow-hidden" style={{ left: u(LEAD - 140), width: u(140.5), height: u(76) }}>
-          <Image src="/world/street.webp" alt="" fill sizes="100vw" className="object-cover object-left-bottom" draggable={false} priority />
+      <motion.div className="absolute inset-y-0 left-0" style={{ x: worldX, width: u(TRACK + 20) }}>
+        {/* Delhi, where the walk begins */}
+        <div aria-hidden="true" className="street-ground absolute overflow-hidden" style={{ left: 0, width: u(LEAD + 0.5), height: u(H) }}>
+          <Image src={START_SCENE.scene} alt="" fill priority sizes="200vw" className="object-cover object-bottom" draggable={false} />
         </div>
-        {/* painted Delhi behind each stop */}
-        {journey.map((s, i) =>
-          SCENE[s.id].src ? (
-            <div key={`scene-${s.id}`} aria-hidden="true" className="street-ground absolute overflow-hidden" style={{ left: u(panelLeft(i)), width: u(SCENE[s.id].w + 0.5), height: u(76) }}>
-              <Image src={SCENE[s.id].src!} alt="" fill sizes="(max-width: 640px) 160vw, 100vw" className="object-cover object-bottom" draggable={false} priority={i === 0} />
-              {/* places you haven't reached yet are still a sketch in the fog */}
-              <span className={`absolute inset-0 bg-paper transition-opacity duration-700 ${i <= reached + 1 ? "opacity-0" : "opacity-75"}`} />
-            </div>
-          ) : (
-            <div key={`scene-${s.id}`} aria-hidden="true" className="street-ground absolute bg-[linear-gradient(to_bottom,var(--color-sky),var(--color-cream))]" style={{ left: u(panelLeft(i)), width: u(SCENE[s.id].w + 40), height: u(76) }} />
-          ),
-        )}
-        <div aria-hidden="true" className="street-road absolute bottom-0 left-[-100vw] right-[-100vw] border-t-[4px] border-ink bg-stone">
-          <div className="absolute inset-x-0 top-[22%] h-[78%] border-t-[4px] border-ink bg-asphalt">
-            <div className="absolute inset-x-0 -top-[10px] h-[10px] bg-[repeating-linear-gradient(90deg,var(--color-ink)_0_28px,var(--color-paper)_28px_56px)]" />
-            <div className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 bg-[repeating-linear-gradient(90deg,var(--color-paper)_0_48px,transparent_48px_96px)] opacity-80" />
+        {/* one painted scene per chapter; places not reached yet wait in the haze */}
+        {journey.map((s, i) => (
+          <div key={`scene-${s.id}`} aria-hidden="true" className="street-ground absolute overflow-hidden" style={{ left: u(panelLeft(i)), width: u(width(s.id) + 0.5), height: u(H) }}>
+            <Image src={s.scene} alt="" fill priority={i === 0} sizes="200vw" className="object-cover object-bottom" draggable={false} />
+            <span className={`absolute inset-0 bg-[#f6eedc] transition-opacity duration-700 ${i <= reached + 1 ? "opacity-0" : "opacity-70"}`} />
           </div>
-        </div>
+        ))}
+        <Road />
 
-        {/* start */}
-        <div className="street-ground absolute" style={{ left: u(START - 6) }}>
-          <span className="sticker block"><Signboard point="right" tone="cream">Start</Signboard></span>
-        </div>
-
+        {/* signboards: real buttons that walk you there */}
         {journey.map((s, i) => {
           const known = i <= reached + 1;
           return (
-            <div key={s.id} className="street-ground absolute" style={{ left: u(stand(i) + 6) }}>
-              <div className={`relative flex items-end gap-[calc(var(--u)*2)] transition-opacity duration-500 ${known ? "opacity-100" : "opacity-30"}`}>
-                <button
-                  type="button"
-                  onClick={() => walkTo(stand(i))}
-                  onFocus={() => walkTo(stand(i))}
-                  aria-label={known ? `Walk to stop ${i + 1}: ${s.place}` : `Walk to stop ${i + 1}`}
-                  className="relative z-10 -mb-1"
-                >
-                  <span className="sticker block">
+            <div key={s.id} className="street-ground absolute" style={{ left: u(stand(i) + 14) }}>
+              <button
+                type="button"
+                onClick={() => walkTo(stand(i))}
+                onFocus={() => walkTo(stand(i))}
+                aria-label={known ? `Walk to ${s.place}` : `Walk to stop ${i + 1}`}
+                className={`block transition-opacity duration-500 ${known ? "opacity-100" : "opacity-60"}`}
+              >
+                <span className="sticker block">
                   <Signboard point="none" tone={i === at ? "butter" : "cream"}>
                     <span className="block text-[0.62em] opacity-70">{known ? s.when : `Stop ${i + 1}`}</span>
-                    {known ? SHORT[s.id] : "?"}
+                    {known ? s.sign : "?"}
                   </Signboard>
-                  </span>
-                </button>
-                <div className="relative" style={{ height: u(SCENE[s.id].src ? 30 : 40), width: u(SCENE[s.id].src ? 12 : 52) }}>
-                  {!SCENE[s.id].src && (
-                    <span className="sticker block h-full">
-                      <Landmark icon={s.icon} />
-                    </span>
-                  )}
-                  {known && s.image && (
-                    <figure className="sticker absolute -top-[calc(var(--u)*8)] left-0 w-[calc(var(--u)*18)] max-w-[190px] rotate-[-3deg] bg-paper p-1.5">
-                      <Image src={s.image.src} alt={s.image.alt} width={360} height={270} className="aspect-[4/3] w-full object-cover" />
-                    </figure>
-                  )}
-                </div>
-              </div>
+                </span>
+              </button>
             </div>
           );
         })}
-
-        <div className="street-ground absolute" style={{ left: u(TRACK - 16) }}>
-          <Link href="/" aria-label="Back to the street">
-            <span className="sticker block"><Signboard point="left" tone="cream">To the street</Signboard></span>
-          </Link>
-        </div>
       </motion.div>
 
       {/* Ashita */}
       <div className="street-feet pointer-events-none absolute z-10 -translate-x-1/2" style={{ left: `${avatarFrac * 100}%`, height: u(34) }}>
-        <Avatar pose={walking ? "walk" : at === -1 && here < stand(0) ? "wave" : "stand"} facing={facing} className="h-full w-auto" />
+        <Avatar pose={walking ? "walk" : at === -1 && here < stand(0) ? "wave" : "stand"} facing={facing} className="h-full w-auto" priority />
       </div>
 
       {/* header */}
       <header className="absolute left-3 right-3 top-3 z-30 flex items-start justify-between gap-3 sm:left-6 sm:right-6 sm:top-5">
         <div>
-          <Link href="/" className="inline-flex min-h-11 items-center rounded-full border-[3px] border-ink bg-paper px-4 text-sm font-bold shadow-[3px_3px_0_var(--color-ink)]">
-            ← Street
-          </Link>
-          <h1 className="mt-3 inline-block -rotate-1 rounded-md border-[3px] border-ink bg-paper px-3 pt-1 font-display text-[clamp(1.6rem,5vw,3rem)] uppercase leading-none shadow-[3px_3px_0_var(--color-ink)]">How I got here</h1>
-          <ol className="mt-2 flex w-max rounded-full bg-paper/85 px-1" aria-label="Stops on the road">
+          <h1 className="inline-block rounded-full bg-[#1c1b1d]/80 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-[#f6eedc] backdrop-blur">About me</h1>
+          <ol className="mt-2 flex w-max rounded-full bg-[#1c1b1d]/70 px-1 backdrop-blur" aria-label="Stops on the road">
             {journey.map((s, i) => (
               <li key={s.id}>
                 <button
@@ -273,18 +233,14 @@ export default function JourneyRoad() {
                   aria-current={i === at ? "step" : undefined}
                   className="grid h-11 w-11 place-items-center"
                 >
-                  <span className={`block h-3.5 w-3.5 rounded-full border-[3px] border-ink ${i === at ? "bg-red" : i <= reached ? "bg-butter" : "bg-paper"}`} />
+                  <span className={`block h-3 w-3 rounded-full border-2 border-[#f6eedc] ${i === at ? "bg-[#f2b51d]" : i <= reached ? "bg-[#f6eedc]" : "bg-transparent"}`} />
                 </button>
               </li>
             ))}
           </ol>
         </div>
-        <button
-          type="button"
-          onClick={() => setOverview(true)}
-          className="min-h-11 rounded-full border-[3px] border-ink bg-butter px-4 text-sm font-bold shadow-[3px_3px_0_var(--color-ink)]"
-        >
-          <span className="hidden sm:inline">In a hurry? </span>All stops
+        <button type="button" onClick={() => setOverview(true)} className="min-h-11 rounded-full bg-[#1c1b1d]/80 px-4 text-sm font-bold text-[#f6eedc] backdrop-blur">
+          All stops
         </button>
       </header>
 
@@ -295,52 +251,52 @@ export default function JourneyRoad() {
             key={stop?.id ?? "intro"}
             data-card
             aria-live="polite"
-            initial={{ opacity: 0, y: 16, rotate: -1 }}
-            animate={{ opacity: 1, y: 0, rotate: -1 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.25 }}
-            className="absolute inset-x-3 bottom-[84px] z-20 max-h-[34dvh] overflow-y-auto rounded-xl border-[4px] border-ink bg-cream p-4 shadow-[6px_6px_0_var(--color-ink)] sm:inset-x-auto sm:right-6 sm:top-28 sm:bottom-auto sm:max-h-[60dvh] sm:w-[380px] sm:p-5"
+            className="absolute inset-x-3 bottom-[104px] z-20 max-h-[34dvh] overflow-y-auto rounded-2xl bg-[#f6eedc] p-4 shadow-[0_20px_50px_rgb(0_0_0/0.35)] sm:inset-x-auto sm:right-6 sm:top-24 sm:bottom-auto sm:max-h-[60dvh] sm:w-[380px] sm:p-5"
           >
-            <span aria-hidden="true" className="absolute -top-3 left-1/2 h-5 w-16 -translate-x-1/2 rotate-[3deg] bg-butter/80" />
             {stop ? (
               <>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-wood-dark">
-                  Stop {at + 1} of {journey.length} · {stop.when}
-                </p>
-                <h2 ref={cardRef} tabIndex={-1} className="mt-1 font-display text-2xl uppercase leading-none outline-none sm:text-3xl">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-wood-dark">{stop.when}</p>
+                <h2 ref={cardRef} tabIndex={-1} className="mt-1 font-display text-2xl uppercase leading-none text-line outline-none sm:text-3xl">
                   {stop.place}
                 </h2>
-                <p className="mt-1 font-semibold">{stop.role}</p>
-                <ul className="mt-2 space-y-1.5 text-[15px]">
+                <p className="mt-1 font-semibold text-line">{stop.role}</p>
+                <ul className="mt-2 space-y-1.5 text-[15px] text-line">
                   {stop.points.map((p) => (
                     <li key={p} className="flex gap-2">
-                      <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ink" />
+                      <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-line" />
                       {p}
                     </li>
                   ))}
                 </ul>
                 <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="What it added">
                   {stop.skills.map((k) => (
-                    <li key={k} className="rounded-full border-2 border-ink bg-paper px-2.5 py-0.5 text-xs font-semibold">
+                    <li key={k} className="rounded-full bg-line/10 px-2.5 py-1 text-xs font-semibold text-line">
                       {k}
                     </li>
                   ))}
                 </ul>
-                <div className="mt-3 flex flex-wrap items-center gap-3">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   {at < journey.length - 1 ? (
-                    <button type="button" onClick={() => walkTo(stand(at + 1))} className="min-h-11 rounded-full border-[3px] border-ink bg-butter px-4 font-bold shadow-[3px_3px_0_var(--color-ink)]">
+                    <button type="button" onClick={() => walkTo(stand(at + 1))} className="min-h-11 rounded-full bg-line px-4 text-sm font-bold text-[#f6eedc]">
                       Walk on →
                     </button>
                   ) : (
-                    <HandNote>that&apos;s me, today. thanks for walking with me!</HandNote>
+                    <HandNote>that&apos;s me, today</HandNote>
                   )}
+                  <button type="button" onClick={keepMemory} disabled={saving} className="min-h-11 rounded-full border-2 border-line px-4 text-sm font-bold text-line disabled:opacity-60">
+                    {saving ? "Printing…" : "Keep this memory ↓"}
+                  </button>
                 </div>
               </>
             ) : (
               <>
-                <h2 className="font-display text-2xl uppercase leading-none sm:text-3xl">Walk with me</h2>
-                <p className="mt-2">Commerce, audit, psychology, marketing, product, then design. Seven stops so far.</p>
-                <button type="button" onClick={() => walkTo(stand(next >= 0 ? next : 0))} className="mt-3 min-h-11 rounded-full border-[3px] border-ink bg-butter px-4 font-bold shadow-[3px_3px_0_var(--color-ink)]">
+                <h2 className="font-display text-2xl uppercase leading-none text-line sm:text-3xl">Walk with me</h2>
+                <p className="mt-2 text-line">From Delhi to Jodhpur: commerce, audit, psychology, marketing, product, then design.</p>
+                <button type="button" onClick={() => walkTo(stand(next >= 0 ? next : 0))} className="mt-3 min-h-11 rounded-full bg-line px-4 text-sm font-bold text-[#f6eedc]">
                   Start walking →
                 </button>
               </>
@@ -356,32 +312,28 @@ export default function JourneyRoad() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="overview-h"
-            className="fixed inset-0 z-50 overflow-y-auto bg-ink/60 p-3 sm:p-8"
+            className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-3 sm:p-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onKeyDown={(e) => e.key === "Escape" && setOverview(false)}
           >
-            <div className="mx-auto max-w-3xl rounded-2xl border-[4px] border-ink bg-paper p-5 shadow-[8px_8px_0_var(--color-ink)] sm:p-8">
+            <div className="mx-auto max-w-3xl rounded-2xl bg-[#f6eedc] p-5 text-line shadow-[0_20px_60px_rgb(0_0_0/0.4)] sm:p-8">
               <div className="flex items-start justify-between gap-4">
                 <h2 id="overview-h" className="font-display text-3xl uppercase sm:text-4xl">The whole road</h2>
-                <button type="button" autoFocus onClick={() => setOverview(false)} className="min-h-11 rounded-full border-[3px] border-ink bg-butter px-4 text-sm font-bold">
-                  Close ✕
+                <button type="button" autoFocus onClick={() => setOverview(false)} className="min-h-11 rounded-full bg-line px-4 text-sm font-bold text-[#f6eedc]">
+                  Close
                 </button>
               </div>
               <ol className="mt-6 space-y-6">
-                {journey.map((s, i) => (
-                  <li key={s.id} className="border-l-[4px] border-dashed border-ink pl-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-wood-dark">
-                      Stop {i + 1} · {s.when}
-                    </p>
-                    <h3 className="font-display text-2xl uppercase">{s.place}</h3>
-                    <p className="font-semibold">{s.role}</p>
-                    <ul className="mt-1 list-disc pl-5 text-[15px]">
-                      {s.points.map((p) => (
-                        <li key={p}>{p}</li>
-                      ))}
-                    </ul>
+                {journey.map((s) => (
+                  <li key={s.id} className="grid gap-4 sm:grid-cols-[180px_1fr]">
+                    <Image src={s.scene} alt="" width={360} height={135} className="aspect-[8/3] w-full rounded-lg object-cover" />
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-wood-dark">{s.when}</p>
+                      <h3 className="font-display text-2xl uppercase">{s.place}</h3>
+                      <p className="font-semibold">{s.role}</p>
+                    </div>
                   </li>
                 ))}
               </ol>

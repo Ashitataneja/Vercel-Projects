@@ -1,45 +1,45 @@
+"use client";
+
 import Link from "next/link";
-import { modes } from "@/lib/site";
+import { useEffect, useRef } from "react";
+import { menu } from "@/lib/site";
 
 type Props = {
   /** href of the current page */
   current: string;
-  /** "inline" sits in the page flow; "dock" is fixed to the bottom of the screen */
-  variant?: "inline" | "dock";
 };
 
 /**
- * Phone-camera style mode switcher. Real links, so it works without JS,
- * with the keyboard and with screen readers.
+ * The site menu, styled like a phone camera's mode switcher: a dark bar,
+ * section names in a row, the current one centred in a dark pill in yellow,
+ * names fading out toward the edges. Real links, keyboard reachable.
  */
-export default function ModeStrip({ current, variant = "dock" }: Props) {
-  const dock = variant === "dock";
+export default function ModeStrip({ current }: Props) {
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // Keep the current mode centred, the way a camera keeps its mode under the shutter.
+  useEffect(() => {
+    const list = listRef.current;
+    const active = list?.querySelector<HTMLElement>("[aria-current='page']");
+    if (!list || !active) return;
+    list.scrollLeft = active.offsetLeft + active.offsetWidth / 2 - list.clientWidth / 2;
+  }, [current]);
+
   return (
-    <nav
-      aria-label="Site modes"
-      className={
-        dock
-          ? "fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-2"
-          : "flex justify-center"
-      }
-    >
+    <nav aria-label="Site" className="fixed inset-x-0 bottom-0 z-40 bg-[#0d0d0e]/92 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur">
       <ul
-        className={`flex max-w-full items-center gap-0.5 sm:gap-1 overflow-x-auto rounded-full p-1 [scrollbar-width:none] ${
-          dock ? "bg-ink/95 shadow-[0_6px_0_rgb(0_0_0/0.25)] backdrop-blur" : "bg-ink"
-        }`}
+        ref={listRef}
+        className="mx-auto flex max-w-xl items-center gap-1 overflow-x-auto px-[calc(50%-60px)] [mask-image:linear-gradient(90deg,transparent,black_18%,black_82%,transparent)] [scrollbar-width:none] sm:justify-center sm:px-4 sm:[mask-image:none]"
       >
-        {modes.map((m) => {
+        {menu().map((m) => {
           const active = m.href === "/" ? current === "/" : current === m.href || current.startsWith(m.href + "/");
           return (
             <li key={m.href} className="shrink-0">
               <Link
                 href={m.href}
                 aria-current={active ? "page" : undefined}
-                aria-label={m.href === "/" ? "Home: the street" : undefined}
-                className={`flex min-h-11 min-w-11 items-center justify-center rounded-full px-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors min-[400px]:text-[12px] sm:px-4 sm:text-[13px] sm:tracking-[0.14em] ${
-                  active
-                    ? "bg-butter text-ink"
-                    : "text-cream hover:bg-white/10 hover:text-paper"
+                className={`flex min-h-11 items-center justify-center rounded-full px-4 text-[13px] font-semibold uppercase tracking-[0.06em] transition-colors sm:px-5 sm:text-sm ${
+                  active ? "bg-[#2a2a2c] text-[#f5b81b]" : "text-white/85 hover:text-white"
                 }`}
               >
                 {m.label}

@@ -6,44 +6,116 @@ export type Mode = {
 };
 
 /** Camera-style modes. Order matches the strip, left to right. */
-export const modes: Mode[] = [
+const modeList: Mode[] = [
   { href: "/", label: "Home", name: "Home" },
   { href: "/work", label: "Work", name: "Work" },
   { href: "/about", label: "About", name: "About me" },
   { href: "/blog", label: "Blog", name: "Blog" },
   { href: "/contact", label: "Contact", name: "Contact" },
 ];
+/** The menu. Gallery appears once there are photographs to show (see galleryPhotos below). */
+export function menu(): Mode[] {
+  return galleryPhotos.length ? [...modeList.slice(0, 4), { href: "/gallery", label: "Gallery", name: "Gallery" }, ...modeList.slice(4)] : modeList;
+}
+
 
 /* ------------------------------------------------------------------ */
 /* Work: one ticket per project. Titles and clients are from the CV;   */
 /* the case-study write-ups come later.                                */
 /* ------------------------------------------------------------------ */
+export type CaseSection = { title: string; body: string };
 export type Project = {
   slug: string;
   number: string;
   title: string;
   client: string;
   kind: string;
-  /** ticket colour */
-  tone: "cream" | "butter" | "sky" | "paper";
-  /** what kind of ticket it's printed as, for the collection */
-  style: "cinema" | "train" | "bus" | "museum" | "concert";
+  /** the ink the painted ticket is tinted with */
+  tint: string;
+  /** what's printed in the ticket's corner */
+  printed: string;
+  /** what plays on the TV, section by section. Facts from the CV only; the full write-ups come later. */
+  sections: CaseSection[];
+};
+
+const FULL_STORY: CaseSection = {
+  title: "The full story",
+  body: "I'm writing this one up. Until then, I'd love to walk you through it myself.",
 };
 
 export const projects: Project[] = [
-  { slug: "karnival-dashboard", number: "01", title: "Dashboard Analytics", client: "Karnival · B2B", kind: "Product design", tone: "butter", style: "cinema" },
-  { slug: "fnp-point-of-sale", number: "02", title: "Point-of-Sale", client: "Ferns N Petals", kind: "Product design", tone: "cream", style: "train" },
-  { slug: "woovly-creator-landing", number: "03", title: "Creator Landing Page", client: "Woovly", kind: "UX design", tone: "sky", style: "concert" },
-  { slug: "woovly-revamp", number: "04", title: "Woovly Revamp", client: "Woovly · desktop & mobile", kind: "UX design", tone: "paper", style: "bus" },
-  { slug: "org-psychology-research", number: "05", title: "UX Research", client: "Organisational-psychology backed", kind: "Research", tone: "cream", style: "museum" },
+  {
+    slug: "karnival-dashboard",
+    number: "01",
+    title: "Dashboard Analytics",
+    client: "Karnival · B2B",
+    kind: "Product",
+    tint: "#f2b51d",
+    printed: "Admit one",
+    sections: [
+      { title: "The brief", body: "Revamp Karnival's dashboard analytics product for its B2B clients." },
+      { title: "My role", body: "Product Manager at Karnival, July 2024 to July 2025." },
+      { title: "Where it landed", body: "ROI went up significantly, and clients understood their data better." },
+      FULL_STORY,
+    ],
+  },
+  {
+    slug: "fnp-point-of-sale",
+    number: "02",
+    title: "Point-of-Sale",
+    client: "Ferns N Petals",
+    kind: "Product",
+    tint: "#d9482b",
+    printed: "Boarding pass",
+    sections: [
+      { title: "The brief", body: "Build a point-of-sale (POS) system for Ferns N Petals stores." },
+      { title: "My role", body: "Led its development as Product Manager at Karnival." },
+      { title: "Where it landed", body: "Smoother store operations and a better experience for the people using it." },
+      FULL_STORY,
+    ],
+  },
+  {
+    slug: "woovly-creator-landing",
+    number: "03",
+    title: "Creator Landing Page",
+    client: "Woovly",
+    kind: "UX design",
+    tint: "#30a0e0",
+    printed: "Live · gate 4",
+    sections: [
+      { title: "The brief", body: "A landing page for creators on Woovly." },
+      { title: "My role", body: "Product Designer, Woovly, 2023." },
+      FULL_STORY,
+    ],
+  },
+  {
+    slug: "woovly-revamp",
+    number: "04",
+    title: "Woovly Revamp",
+    client: "Woovly",
+    kind: "UX design",
+    tint: "#e8588a",
+    printed: "Bus ticket",
+    sections: [
+      { title: "The brief", body: "Revamp Woovly across desktop and mobile." },
+      { title: "My role", body: "Product Designer, Woovly, 2023." },
+      FULL_STORY,
+    ],
+  },
+  {
+    slug: "org-psychology-research",
+    number: "05",
+    title: "UX Research",
+    client: "Organisational psychology",
+    kind: "Research",
+    tint: "#4e9a4b",
+    printed: "Museum entry",
+    sections: [
+      { title: "The brief", body: "A UX research project grounded in organisational psychology." },
+      FULL_STORY,
+    ],
+  },
 ];
-
-export const caseStops = [
-  { id: "problem", title: "The problem" },
-  { id: "field-notes", title: "Field notes" },
-  { id: "turning-points", title: "Turning points" },
-  { id: "landed", title: "Where it landed" },
-] as const;
 
 /* ------------------------------------------------------------------ */
 /* About: the journey map. Facts are from Ashita's CV only.            */
@@ -58,8 +130,10 @@ export type JourneyStop = {
   skills: string[];
   /** Ashita's own photo or illustration for this stop, once she provides it */
   image?: { src: string; alt: string };
-  /** small drawn landmark on the map */
-  icon: "college" | "office" | "book" | "megaphone" | "pencil" | "rocket" | "flag";
+  /** Ashita's painted scene for this stop (public/world/journey) */
+  scene: string;
+  /** what the signboard on the road says */
+  sign: string;
 };
 
 export const journey: JourneyStop[] = [
@@ -74,7 +148,8 @@ export const journey: JourneyStop[] = [
       "Graphic design internship at Bloody Donut (2021).",
     ],
     skills: ["Leadership", "Event planning", "Stakeholder outreach"],
-    icon: "college",
+    scene: "/world/journey/sbsc.webp",
+    sign: "Commerce · SBSC",
   },
   {
     id: "kpmg",
@@ -86,7 +161,8 @@ export const journey: JourneyStop[] = [
       "Analysed financial data, procedures and reports to find risks and keep documentation accurate.",
     ],
     skills: ["Audit", "Internal controls", "Risk analysis", "Documentation"],
-    icon: "office",
+    scene: "/world/journey/kpmg.webp",
+    sign: "Audit · KPMG",
   },
   {
     id: "psychology",
@@ -95,7 +171,8 @@ export const journey: JourneyStop[] = [
     role: "MA in Psychology",
     points: ["Behavioural psychology, survey design and insight synthesis became part of how I design."],
     skills: ["Behavioural psychology", "Survey design", "Insight synthesis"],
-    icon: "book",
+    scene: "/world/journey/psychology.webp",
+    sign: "Psychology · IGNOU",
   },
   {
     id: "sociowash",
@@ -108,21 +185,10 @@ export const journey: JourneyStop[] = [
       "Won the social media mandate for Anytime Fitness.",
     ],
     skills: ["Integrated campaigns", "Go-to-market strategy", "Client pitching"],
-    icon: "megaphone",
+    scene: "/world/journey/sociowash.webp",
+    sign: "Marketing · Sociowash",
   },
-  {
-    id: "woovly-freelance",
-    place: "Woovly, then freelance",
-    when: "2023 – Jun 2024",
-    role: "Product Designer intern → Freelance Product Designer & Illustrator",
-    points: [
-      "Product design internship at Woovly (2023).",
-      "Designed and prototyped UIs for a Y Combinator-pitched fintech product.",
-      "Built a design system for Ember; researched and rewrote UX copy to reduce bounce rate.",
-    ],
-    skills: ["Prototyping", "Design systems", "UX writing", "Illustration"],
-    icon: "pencil",
-  },
+
   {
     id: "karnival",
     place: "Karnival",
@@ -134,7 +200,8 @@ export const journey: JourneyStop[] = [
       "Ran end-to-end research for a loyalty programme.",
     ],
     skills: ["Product management", "Dashboard analytics", "Point-of-sale", "User research"],
-    icon: "rocket",
+    scene: "/world/journey/karnival.webp",
+    sign: "Product · Karnival",
   },
   {
     id: "iitj",
@@ -146,7 +213,8 @@ export const journey: JourneyStop[] = [
       "Product design internship at HDFC Bank (current).",
     ],
     skills: ["Interaction design", "Product design", "User research"],
-    icon: "flag",
+    scene: "/world/journey/iitj.webp",
+    sign: "Design · IIT Jodhpur",
   },
 ];
 
@@ -166,6 +234,12 @@ export const directory = [
     href: "mailto:taneja.ashita@gmail.com",
     note: "taneja.ashita@gmail.com",
   },
+  {
+    digit: 3,
+    label: "Website",
+    href: "https://atworks.com",
+    note: "atworks.com",
+  },
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -174,3 +248,10 @@ export const directory = [
 /* ------------------------------------------------------------------ */
 export type JournalEntry = { id: string; date: string; title: string; body: string };
 export const journalEntries: JournalEntry[] = [];
+
+/* ------------------------------------------------------------------ */
+/* Gallery: Ashita's photographs. Add files to public/gallery and list  */
+/* them here; the Gallery joins the menu once this list has photos.     */
+/* ------------------------------------------------------------------ */
+export type Photo = { src: string; width: number; height: number; caption: string; place?: string; date?: string };
+export const galleryPhotos: Photo[] = [];

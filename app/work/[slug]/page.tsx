@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ModeStrip from "@/components/ModeStrip";
-import CaseHeader from "@/components/case-study/CaseHeader";
-import NextTicket from "@/components/case-study/NextTicket";
+import TVCaseStudy from "@/components/case-study/TVCaseStudy";
 import { projects } from "@/lib/site";
 
 type Params = { slug: string };
@@ -27,25 +27,22 @@ export default async function CaseStudy({ params }: { params: Promise<Params> })
 
   return (
     <>
-      <main className="min-h-dvh bg-paper pb-36">
-        <CaseHeader project={project} />
-        <div className="mx-auto max-w-4xl space-y-20 px-5 pt-20 sm:px-10">
-          {/* The full write-up (problem, field notes, turning points, where it landed) is on its way. */}
-          <section className="rounded-2xl border-[3px] border-ink bg-cream p-6 shadow-[5px_5px_0_var(--color-ink)] sm:p-8">
-            <h2 className="font-display text-3xl uppercase">Being written up</h2>
-            <p className="mt-3 max-w-prose text-lg">
-              I&apos;m putting this case study into words. Until it&apos;s here, I&apos;d love to walk you through it myself.
-            </p>
-            <Link href="/contact" className="mt-5 inline-flex min-h-11 items-center rounded-full border-[3px] border-ink bg-butter px-5 font-bold shadow-[3px_3px_0_var(--color-ink)]">
-              Ring me up →
-            </Link>
-          </section>
-          <div className="space-y-6">
-            <NextTicket next={next} />
-            <Link href="/work" className="inline-flex min-h-11 items-center font-semibold underline decoration-wood decoration-2 underline-offset-4">
-              ← Back to the box office
-            </Link>
-          </div>
+      <main className="relative flex min-h-dvh flex-col overflow-hidden bg-[#1c140e] px-4 pb-28 pt-5 sm:px-8">
+        {/* the same painted room, lights down, while the TV plays */}
+        <div aria-hidden="true" className="absolute inset-0">
+          <Image src="/world/scenes/work-room.webp" alt="" fill sizes="100vw" className="object-cover opacity-35 blur-[2px]" />
+        </div>
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between">
+          <Link href="/work" className="inline-flex min-h-11 items-center rounded-full bg-[#1c1b1d]/80 px-4 text-sm font-bold text-[#f6eedc] backdrop-blur">
+            ← Back to the box
+          </Link>
+          <h1 className="text-right text-sm font-bold uppercase tracking-[0.18em] text-[#f6eedc]">
+            {project.title}
+            <span className="block text-xs font-semibold normal-case tracking-normal text-[#f6eedc]/70">{project.client}</span>
+          </h1>
+        </div>
+        <div className="relative z-10 flex flex-1 items-center justify-center py-4">
+          <TVCaseStudy project={project} next={next} />
         </div>
       </main>
       <ModeStrip current="/work" />

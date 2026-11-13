@@ -182,7 +182,10 @@ function ClosedBook({ onOpen, reduce, buttonRef }: { onOpen: () => void; reduce:
 /* ------------------------------------------------------------------ */
 type Turn = { dir: 1 | -1; from: number };
 
-export default function Journal() {
+type TriggerProps = { open: () => void; buttonRef: React.RefObject<HTMLButtonElement | null> };
+
+/** The journal. Pass `trigger` to open it from your own object (e.g. a painted notebook on a desk); `onClosed` fires when it's put down. */
+export default function Journal({ trigger, onClosed }: { trigger?: (p: TriggerProps) => React.ReactNode; onClosed?: () => void } = {}) {
   const reduce = !!useReducedMotion();
   const wide = useIsWide();
   const [open, setOpen] = useState(false);
@@ -216,11 +219,12 @@ export default function Journal() {
     window.setTimeout(
       () => {
         setOpen(false);
+        onClosed?.();
         triggerRef.current?.focus();
       },
       reduce ? 0 : 520,
     );
-  }, [reduce]);
+  }, [reduce, onClosed]);
 
   /** Start (or continue) a turn and finish it by animating the leaf. */
   const finish = useCallback(
@@ -311,7 +315,7 @@ export default function Journal() {
 
   return (
     <>
-      <ClosedBook onOpen={openBook} reduce={reduce} buttonRef={triggerRef} />
+      {trigger ? trigger({ open: openBook, buttonRef: triggerRef }) : <ClosedBook onOpen={openBook} reduce={reduce} buttonRef={triggerRef} />}
 
       <AnimatePresence>
         {open && (
@@ -393,11 +397,11 @@ export default function Journal() {
                     >
                       <div
                         className="absolute inset-0 grid place-items-center rounded-r-[10px] border-[2.5px] border-[#3b2b24] [backface-visibility:hidden]"
-                        style={{ background: "radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.2), transparent 55%), linear-gradient(135deg, #c4462a, #9c3420)" }}
+                        style={{ background: "url(/world/objects/notebook.webp) center / 108% 104% no-repeat, #9c3420" }}
                       >
-                        <span className="rounded-[3px] border-2 border-[#3b2b24] bg-[#fbf3e2] px-8 py-6 text-center">
-                          <span className="block text-xs font-bold uppercase tracking-[0.22em] text-wood-dark">Journal</span>
-                          <span className="mt-1 block font-hand text-5xl leading-none">notes from the walk</span>
+                        {/* handwritten on the painted cover's label */}
+                        <span className="absolute left-1/2 top-[25%] w-[34%] -translate-x-1/2 text-center font-hand text-[clamp(1.2rem,2.6vw,2.4rem)] leading-none text-[#3b2b24]">
+                          notes from the walk
                         </span>
                       </div>
                       <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">{page(0, "left")}</div>
