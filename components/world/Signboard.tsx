@@ -21,12 +21,12 @@ export default function Signboard({
         : "";
   return (
     <span className={`relative inline-flex flex-col items-center ${className}`}>
-      <span className="relative inline-block drop-shadow-[3px_3px_0_var(--color-ink)]">
-        <span className={`block bg-ink p-[3px] ${clip}`}>
-          <span className={`block whitespace-nowrap px-3 py-1.5 font-display text-lg uppercase leading-none tracking-wide text-ink ${bg} ${clip}`}>{children}</span>
+      <span className="relative inline-block drop-shadow-[2px_3px_0_rgb(59_43_36/0.45)]">
+        <span className={`block bg-line p-[2.5px] ${clip}`}>
+          <span className={`block whitespace-nowrap px-3 py-1.5 font-display text-lg uppercase leading-none tracking-wide text-line ${bg} ${clip}`} style={{ backgroundImage: "repeating-linear-gradient(90deg, rgb(59 43 36 / 0.05) 0 1px, transparent 1px 6px), linear-gradient(180deg, rgb(255 255 255 / 0.35), transparent 60%)" }}>{children}</span>
         </span>
       </span>
-      {post && <span aria-hidden="true" className="h-10 w-2.5 border-x-[3px] border-ink bg-wood" />}
+      {post && <span aria-hidden="true" className="h-10 w-2.5 border-x-[2.5px] border-line bg-wood" />}
     </span>
   );
 }

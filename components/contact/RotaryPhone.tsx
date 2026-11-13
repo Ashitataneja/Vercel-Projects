@@ -5,28 +5,21 @@ import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion
 import { directory } from "@/lib/site";
 
 /*
- * Geometry of a real rotary dial (angles in degrees, 0 = 3 o'clock, clockwise).
- * The finger stop sits at STOP. Hole for value v (1..10, where 10 is "0")
- * sits v*STEP counter-clockwise from the stop. Dialling v means dragging
- * that hole clockwise until it hits the stop: a rotation of v*STEP.
+ * A rotary telephone with two numbers on its dial.
+ * Angles in degrees, 0 = 3 o'clock, clockwise. The finger stop sits at STOP;
+ * hole d sits d*STEP counter-clockwise from it, so dialling d means turning
+ * the finger wheel d*STEP clockwise until the hole meets the stop.
  */
-const STOP = 62;
-const STEP = 30;
-const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-const value = (d: number) => (d === 0 ? 10 : d);
-const holeAngle = (d: number) => STOP - value(d) * STEP;
-const HOLE_R = 37; // hole centre, as % of the dial's width from its centre
-/** Same radius in the finger plate's own coordinates (plate is inset 3% each side). */
-const PLATE_R = HOLE_R / 0.94;
+const STOP = 58;
+const STEP = 62;
+const DIGITS: number[] = directory.map((d) => d.digit);
+const holeAngle = (d: number) => STOP - d * STEP;
+const HOLE_R = 34; // % of the dial's width, from its centre
+const rad = (a: number) => (a * Math.PI) / 180;
+const LINE = "#3b2b24";
 
-type Status =
-  | { kind: "idle" }
-  | { kind: "dialling"; digit: number }
-  | { kind: "ringing"; digit: number }
-  | { kind: "connected"; digit: number }
-  | { kind: "wrong"; digit: number };
+type Status = { kind: "idle" } | { kind: "dialling" | "ringing" | "connected"; digit: number };
 
-/* ---------------- sound: tiny synthesised clicks, no audio files ---------------- */
 function useClicks(muted: boolean) {
   const ctx = useRef<AudioContext | null>(null);
   return useCallback(
@@ -49,7 +42,7 @@ function useClicks(muted: boolean) {
         src.connect(filter).connect(gain).connect(ac.destination);
         src.start();
       } catch {
-        /* audio unavailable: stay silent */
+        /* no audio: stay silent */
       }
     },
     [muted],
@@ -80,13 +73,9 @@ export default function RotaryPhone() {
     });
   }
 
-  /** What happens once a number has been dialled. */
   const connect = useCallback((digit: number) => {
     const entry = directory.find((e) => e.digit === digit);
-    if (!entry) {
-      setStatus({ kind: "wrong", digit });
-      return;
-    }
+    if (!entry) return;
     setStatus({ kind: "ringing", digit });
     window.setTimeout(() => {
       setStatus({ kind: "connected", digit });
@@ -95,24 +84,20 @@ export default function RotaryPhone() {
     }, 900);
   }, []);
 
-  /** Let the dial spin home, ticking once per number, then connect. */
   const release = useCallback(
     (digit: number, completed: boolean) => {
       const from = rot.get();
-      if (from <= 0.5) {
-        busy.current = false;
-        return;
-      }
       if (!completed) {
         animate(rot, 0, { type: "spring", stiffness: 260, damping: 26, onComplete: () => (busy.current = false) });
         return;
       }
-      let lastTick = Math.floor(from / STEP);
+      // The governor lets the wheel return at an even pace, ticking once per number.
+      let lastTick = Math.floor(from / (STEP / 3));
       animate(rot, 0, {
-        duration: reduce ? 0.01 : 0.18 + value(digit) * 0.09,
+        duration: reduce ? 0.01 : 0.25 + digit * 0.35,
         ease: "linear",
         onUpdate: (v) => {
-          const t = Math.floor(v / STEP);
+          const t = Math.floor(v / (STEP / 3));
           if (t < lastTick) {
             lastTick = t;
             click("tick");
@@ -127,7 +112,6 @@ export default function RotaryPhone() {
     [click, connect, reduce, rot],
   );
 
-  /** Keyboard / tap: the dial turns itself all the way, then returns. */
   const autoDial = useCallback(
     (digit: number) => {
       if (busy.current) return;
@@ -138,25 +122,24 @@ export default function RotaryPhone() {
         connect(digit);
         return;
       }
-      animate(rot, value(digit) * STEP, {
-        duration: 0.25 + value(digit) * 0.05,
+      animate(rot, digit * STEP, {
+        duration: 0.35 + digit * 0.15,
         ease: [0.3, 0, 0.4, 1],
         onComplete: () => {
           click("stop");
-          window.setTimeout(() => release(digit, true), 120);
+          window.setTimeout(() => release(digit, true), 140);
         },
       });
     },
     [click, connect, reduce, release, rot],
   );
 
-  // Pressing 1–0 anywhere on the page dials that number.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target as HTMLElement;
-      if (t.closest("input, textarea, [contenteditable]")) return;
-      if (/^[0-9]$/.test(e.key)) autoDial(Number(e.key));
+      if ((e.target as HTMLElement).closest("input, textarea, [contenteditable]")) return;
+      const n = Number(e.key);
+      if (DIGITS.includes(n)) autoDial(n);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -166,7 +149,6 @@ export default function RotaryPhone() {
     const r = dialRef.current!.getBoundingClientRect();
     return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
   }
-
   function onPointerDown(e: React.PointerEvent<HTMLButtonElement>, digit: number) {
     if (busy.current || reduce) return;
     e.preventDefault();
@@ -183,7 +165,7 @@ export default function RotaryPhone() {
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
     d.last = a;
-    const max = value(d.digit) * STEP;
+    const max = d.digit * STEP;
     d.total = Math.min(max, Math.max(0, d.total + delta));
     rot.set(d.total);
     if (!d.hit && d.total >= max - 0.5) {
@@ -196,7 +178,6 @@ export default function RotaryPhone() {
     if (!d) return;
     drag.current = null;
     if (rot.get() < 3) {
-      // A tap without a turn: dial it for them.
       busy.current = false;
       autoDial(d.digit);
       return;
@@ -205,27 +186,29 @@ export default function RotaryPhone() {
     if (!d.hit) setStatus({ kind: "idle" });
   }
 
-  const entry = "digit" in status ? directory.find((x) => x.digit === status.digit) : undefined;
+  const entry = status.kind !== "idle" ? directory.find((x) => x.digit === status.digit) : undefined;
+  const lifted = status.kind === "ringing" || status.kind === "connected";
 
   return (
-    <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16">
-      {/* ---------------- the phone ---------------- */}
-      <div className="relative mx-auto w-full max-w-[520px]">
-        <PhoneBody lifted={status.kind === "ringing" || status.kind === "connected"} reduce={!!reduce} />
+    <div className="flex flex-col items-center">
+      {/* the telephone: sized to the screen so it's always fully in view */}
+      <div className="relative w-[min(520px,86vw,58dvh)]">
+        <PhoneBody lifted={lifted} reduce={!!reduce} />
 
-        {/* dial, mounted on the phone's face */}
         <div
           ref={dialRef}
-          className="absolute left-1/2 top-[52%] aspect-square w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-ink bg-cream shadow-[inset_0_-6px_0_rgb(19_35_58/0.15)]"
+          className="absolute left-1/2 top-[58%] aspect-square w-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle at 35% 30%, #fff, #d9d4cc 45%, #9d968c 100%)", boxShadow: `0 0 0 3px ${LINE}, inset 0 -6px 12px rgb(0 0 0 / 0.25)` }}
         >
-          {/* numbers printed on the fixed base, seen through the holes */}
+          {/* number card under the finger wheel */}
+          <div className="absolute inset-[9%] rounded-full bg-[#f6eedc] shadow-[inset_0_2px_6px_rgb(0_0_0/0.25)]" />
           {DIGITS.map((d) => {
-            const a = (holeAngle(d) * Math.PI) / 180;
+            const a = rad(holeAngle(d));
             return (
               <span
                 key={d}
                 aria-hidden="true"
-                className="absolute grid h-[19%] w-[19%] -translate-x-1/2 -translate-y-1/2 place-items-center font-display text-[clamp(1rem,4.5vw,1.6rem)] text-ink"
+                className="absolute grid h-[20%] w-[20%] -translate-x-1/2 -translate-y-1/2 place-items-center font-display text-[clamp(1.2rem,5vw,2rem)] text-[#3b2b24]"
                 style={{ left: `${50 + Math.cos(a) * HOLE_R}%`, top: `${50 + Math.sin(a) * HOLE_R}%` }}
               >
                 {d}
@@ -233,36 +216,42 @@ export default function RotaryPhone() {
             );
           })}
 
-          {/* rotating finger plate */}
-          <motion.div className="absolute inset-[3%] rounded-full" style={{ rotate: rot }}>
+          {/* finger wheel: tinted glass with two holes */}
+          <motion.div className="absolute inset-[6%] rounded-full" style={{ rotate: rot }}>
             <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
               <defs>
-                <mask id="holes">
+                <mask id="dial-holes">
                   <rect width="100" height="100" fill="white" />
                   {DIGITS.map((d) => {
-                    const a = (holeAngle(d) * Math.PI) / 180;
-                    const r = PLATE_R;
-                    return <circle key={d} cx={50 + Math.cos(a) * r} cy={50 + Math.sin(a) * r} r="9.6" fill="black" />;
+                    const a = rad(holeAngle(d));
+                    const r = HOLE_R / 0.88;
+                    return <circle key={d} cx={50 + Math.cos(a) * r} cy={50 + Math.sin(a) * r} r="11.5" fill="black" />;
                   })}
+                  <circle cx="50" cy="50" r="22" fill="black" />
                 </mask>
+                <radialGradient id="glass" cx="35%" cy="30%" r="80%">
+                  <stop offset="0" stopColor="#5a4038" stopOpacity="0.55" />
+                  <stop offset="1" stopColor="#1e1714" stopOpacity="0.88" />
+                </radialGradient>
               </defs>
-              <circle cx="50" cy="50" r="49" fill="#D9482B" mask="url(#holes)" />
-              <circle cx="50" cy="50" r="49" fill="none" stroke="#13233A" strokeWidth="2.4" />
+              <circle cx="50" cy="50" r="49" fill="url(#glass)" mask="url(#dial-holes)" />
+              <circle cx="50" cy="50" r="49" fill="none" stroke={LINE} strokeWidth="1.5" />
               {DIGITS.map((d) => {
-                const a = (holeAngle(d) * Math.PI) / 180;
-                const r = PLATE_R;
-                return <circle key={d} cx={50 + Math.cos(a) * r} cy={50 + Math.sin(a) * r} r="9.6" fill="none" stroke="#13233A" strokeWidth="2.4" />;
+                const a = rad(holeAngle(d));
+                const r = HOLE_R / 0.88;
+                return <circle key={d} cx={50 + Math.cos(a) * r} cy={50 + Math.sin(a) * r} r="11.5" fill="none" stroke="#c9c2b8" strokeWidth="1.6" />;
               })}
+              <path d="M18 30 Q30 14 50 12" stroke="#fff" strokeOpacity=".35" strokeWidth="3" fill="none" strokeLinecap="round" />
             </svg>
             {DIGITS.map((d) => {
-              const a = (holeAngle(d) * Math.PI) / 180;
-              const r = PLATE_R;
-              const e = directory.find((x) => x.digit === d);
+              const a = rad(holeAngle(d));
+              const r = HOLE_R / 0.88;
+              const e = directory.find((x) => x.digit === d)!;
               return (
                 <button
                   key={d}
                   type="button"
-                  aria-label={e ? `Dial ${d}: ${e.label}` : `Dial ${d}: not connected`}
+                  aria-label={`Dial ${d}: ${e.label}`}
                   onPointerDown={(ev) => onPointerDown(ev, d)}
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
@@ -274,135 +263,140 @@ export default function RotaryPhone() {
                       autoDial(d);
                     }
                   }}
-                  className="absolute h-[20%] w-[20%] -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-full focus-visible:outline-offset-1 active:cursor-grabbing"
+                  className="absolute h-[28%] min-h-11 w-[28%] min-w-11 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-full focus-visible:outline-offset-1 active:cursor-grabbing"
                   style={{ left: `${50 + Math.cos(a) * r}%`, top: `${50 + Math.sin(a) * r}%` }}
                 />
               );
             })}
           </motion.div>
 
-          {/* centre label */}
-          <div aria-hidden="true" className="absolute inset-[30%] grid place-items-center rounded-full border-[4px] border-ink bg-paper text-center">
-            <span className="px-1 leading-tight">
-              <span className="block text-[clamp(8px,2.2vw,11px)] font-bold uppercase tracking-[0.16em] text-ink-soft">Dial</span>
-              <span className="block font-display text-[clamp(1rem,4.5vw,1.6rem)] leading-none">1 · 2</span>
+          {/* centre card */}
+          <div aria-hidden="true" className="absolute inset-[30%] grid place-items-center rounded-full border-2 border-[#3b2b24] bg-[#f6eedc] text-center shadow-[inset_0_2px_4px_rgb(0_0_0/0.15)]">
+            <span className="font-hand text-[clamp(1rem,3.6vw,1.5rem)] leading-tight text-ink">
+              Ashita
             </span>
           </div>
 
-          {/* finger stop */}
+          {/* chrome finger stop */}
           <span
             aria-hidden="true"
-            className="absolute h-[16%] w-[5%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-ink bg-butter"
+            className="absolute h-[16%] w-[4.5%] -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
-              left: `${50 + Math.cos((STOP * Math.PI) / 180) * 49}%`,
-              top: `${50 + Math.sin((STOP * Math.PI) / 180) * 49}%`,
+              left: `${50 + Math.cos(rad(STOP)) * 47}%`,
+              top: `${50 + Math.sin(rad(STOP)) * 47}%`,
               rotate: `${STOP + 90}deg`,
+              background: "linear-gradient(90deg, #8d877e, #f4f1ea, #8d877e)",
+              boxShadow: `0 0 0 2px ${LINE}`,
             }}
           />
         </div>
       </div>
 
-      {/* ---------------- display + directory ---------------- */}
-      <div className="space-y-6">
-        <div
-          role="status"
-          aria-live="polite"
-          className="min-h-[92px] rounded-xl border-[4px] border-ink bg-ink px-5 py-4 font-mono text-paper shadow-[6px_6px_0_rgb(19_35_58/0.3)]"
-        >
-          <p className="text-xs uppercase tracking-[0.2em] text-butter">Line {status.kind === "idle" ? "open" : status.kind}</p>
-          <p className="mt-1 text-lg">
-            {status.kind === "idle" && "Put a finger in a hole and turn it to the stop."}
+      {/* what's on the line, and the same two numbers as plain links */}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3" aria-live="polite">
+        {status.kind === "idle" ? (
+          directory.map((e) => (
+            <a
+              key={e.digit}
+              href={e.href}
+              target={e.href.startsWith("http") ? "_blank" : undefined}
+              rel="noopener"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-[3px] border-ink bg-paper px-4 text-sm font-bold shadow-[3px_3px_0_var(--color-ink)]"
+            >
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-red font-display text-sm text-paper">{e.digit}</span>
+              {e.label}
+            </a>
+          ))
+        ) : (
+          <p className="min-h-11 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper">
             {status.kind === "dialling" && `Dialling ${status.digit}…`}
-            {status.kind === "ringing" && `Ring ring… connecting you to ${entry?.label}.`}
+            {status.kind === "ringing" && `Ringing ${entry?.label}…`}
             {status.kind === "connected" && entry && (
               <>
-                Connected.{" "}
+                Connected ·{" "}
                 <a href={entry.href} target={entry.href.startsWith("http") ? "_blank" : undefined} rel="noopener" className="text-butter underline underline-offset-4">
-                  Open {entry.label}
+                  open {entry.label}
                 </a>
               </>
             )}
-            {status.kind === "wrong" && `${status.digit} isn't connected. Try 1 or 2.`}
           </p>
-        </div>
-
-        <section aria-labelledby="directory-h" className="rounded-xl border-[4px] border-ink bg-cream p-5 shadow-[6px_6px_0_var(--color-ink)]">
-          <h2 id="directory-h" className="font-display text-2xl uppercase">Directory</h2>
-          <ul className="mt-3 divide-y-2 divide-dashed divide-ink/40">
-            {directory.map((e) => (
-              <li key={e.digit}>
-                <a
-                  href={e.href}
-                  target={e.href.startsWith("http") ? "_blank" : undefined}
-                  rel="noopener"
-                  className="flex min-h-12 items-center gap-4 py-2 hover:text-wood-dark"
-                >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-[3px] border-ink bg-red font-display text-lg text-paper">
-                    {e.digit}
-                  </span>
-                  <span>
-                    <span className="block font-bold">{e.label}</span>
-                    <span className="block text-sm text-ink-soft">{e.note}</span>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-
+        )}
         <button
           type="button"
           onClick={toggleMute}
-          aria-pressed={muted}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border-[3px] border-ink bg-paper px-4 text-sm font-bold"
+          aria-pressed={!muted}
+          aria-label={muted ? "Turn dial sound on" : "Turn dial sound off"}
+          className="grid h-11 w-11 place-items-center rounded-full border-[3px] border-ink bg-paper text-base"
         >
-          <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span> Sound {muted ? "off" : "on"}
+          <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span>
         </button>
       </div>
     </div>
   );
 }
 
-/** Comic rotary phone body. The handset lifts when a call connects. */
+/** The telephone body, with a coiled cord that runs from the base into the handset. */
 function PhoneBody({ lifted, reduce }: { lifted: boolean; reduce: boolean }) {
+  const up = lifted && !reduce;
+  // Cord: plugs into the base's left side and into the handset's left end; stretches when lifted.
+  const coil = (x0: number, y0: number, x1: number, y1: number) => {
+    const n = 9;
+    let d = `M${x0} ${y0}`;
+    for (let i = 1; i <= n; i++) {
+      const x = x0 + ((x1 - x0) * i) / n;
+      const y = y0 + ((y1 - y0) * i) / n;
+      d += ` Q${x + (i % 2 ? -20 : 20)} ${y - (y1 - y0) / n / 2} ${x} ${y}`;
+    }
+    return d;
+  };
+  const cordRest = coil(78, 330, 64, 112);
+  const cordUp = coil(78, 330, 66, 88);
   return (
     <svg viewBox="0 0 520 470" className="block h-auto w-full" aria-hidden="true">
       <defs>
-        <pattern id="phone-dots" width="8" height="8" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.3" fill="#13233A" opacity=".2" />
-        </pattern>
+        <linearGradient id="body-red" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#d9563a" />
+          <stop offset="0.55" stopColor="#b83a22" />
+          <stop offset="1" stopColor="#7e2414" />
+        </linearGradient>
+        <linearGradient id="base-dark" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#5a2a1c" />
+          <stop offset="1" stopColor="#2e1a14" />
+        </linearGradient>
       </defs>
-      {/* shadow */}
-      <ellipse cx="270" cy="452" rx="230" ry="14" fill="#13233A" opacity=".2" />
-      {/* body */}
-      <path d="M70 440 L110 150 Q118 112 160 112 H360 Q402 112 410 150 L450 440 Z" fill="#D9482B" stroke="#13233A" strokeWidth="7" strokeLinejoin="round" />
-      <path d="M70 440 L110 150 Q118 112 160 112 H360 Q402 112 410 150 L450 440 Z" fill="url(#phone-dots)" />
-      <rect x="54" y="424" width="412" height="26" rx="10" fill="#8A3F1C" stroke="#13233A" strokeWidth="7" />
-      {/* cradle prongs */}
-      <path d="M128 126 V92 M392 126 V92" stroke="#13233A" strokeWidth="14" strokeLinecap="round" />
-      {/* handset */}
-      <motion.g
-        animate={lifted && !reduce ? { y: -46, rotate: -8 } : { y: 0, rotate: 0 }}
+      <ellipse cx="265" cy="452" rx="235" ry="14" fill="#000" opacity=".22" />
+      {/* base plate + body */}
+      <rect x="50" y="420" width="420" height="28" rx="12" fill="url(#base-dark)" stroke={LINE} strokeWidth="4" />
+      <path d="M72 424 L112 168 Q120 126 166 126 H354 Q400 126 408 168 L448 424 Z" fill="url(#body-red)" stroke={LINE} strokeWidth="4.5" strokeLinejoin="round" />
+      <path d="M126 170 Q132 142 166 142 H250" stroke="#fff" strokeOpacity=".35" strokeWidth="8" strokeLinecap="round" fill="none" />
+      {/* cradle */}
+      <path d="M150 132 Q150 104 128 100 M370 132 Q370 104 392 100" stroke={LINE} strokeWidth="14" strokeLinecap="round" fill="none" />
+      <path d="M150 132 Q150 104 128 100 M370 132 Q370 104 392 100" stroke="#a7321d" strokeWidth="8" strokeLinecap="round" fill="none" />
+      {/* cord socket on the base */}
+      <rect x="66" y="322" width="22" height="16" rx="4" fill="#2e1a14" stroke={LINE} strokeWidth="3" />
+      {/* coiled cord, attached at both ends */}
+      <motion.path
+        d={cordRest}
+        animate={{ d: up ? cordUp : cordRest }}
         transition={{ type: "spring", stiffness: 200, damping: 14 }}
-        style={{ transformOrigin: "260px 80px" }}
-      >
-        <path
-          d="M40 98 Q40 40 100 40 H420 Q480 40 480 98 Q480 120 456 120 H404 Q388 120 384 100 Q380 84 360 84 H160 Q140 84 136 100 Q132 120 116 120 H64 Q40 120 40 98 Z"
-          fill="#D9482B"
-          stroke="#13233A"
-          strokeWidth="7"
-          strokeLinejoin="round"
-        />
-        <path d="M70 62 Q110 52 160 58" stroke="#FFF6E6" strokeWidth="6" strokeLinecap="round" fill="none" opacity=".7" />
-      </motion.g>
-      {/* coiled cord */}
-      <path
-        d="M66 400 q-22 -6 -16 -28 q22 -6 16 -28 q-22 -6 -16 -28 q22 -6 16 -28 q-22 -6 -16 -28 q22 -6 16 -28 q-22 -6 -8 -40"
-        stroke="#13233A"
-        strokeWidth="5"
+        stroke="#2e1a14"
+        strokeWidth="6"
         fill="none"
         strokeLinecap="round"
       />
+      {/* handset */}
+      <motion.g animate={up ? { y: -46, rotate: -6 } : { y: 0, rotate: 0 }} transition={{ type: "spring", stiffness: 200, damping: 14 }} style={{ transformOrigin: "260px 90px" }}>
+        <path
+          d="M44 108 Q44 52 104 52 H416 Q476 52 476 108 Q476 132 452 132 H404 Q388 132 384 112 Q380 96 360 96 H160 Q140 96 136 112 Q132 132 116 132 H68 Q44 132 44 108 Z"
+          fill="url(#body-red)"
+          stroke={LINE}
+          strokeWidth="4.5"
+          strokeLinejoin="round"
+        />
+        <path d="M72 72 Q110 62 170 66" stroke="#fff" strokeOpacity=".4" strokeWidth="6" strokeLinecap="round" fill="none" />
+        {/* where the cord enters the handset */}
+        <rect x="56" y="106" width="16" height="12" rx="3" fill="#2e1a14" stroke={LINE} strokeWidth="2.5" />
+      </motion.g>
     </svg>
   );
 }

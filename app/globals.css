@@ -9,17 +9,15 @@
   --color-paper: #fff6e6;
   --color-ink: #13233a;
   --color-ink-soft: #2a3d58;
-  --color-pin: #d9482b;
   --color-red: #d9482b;
   --color-wood: #c8662e;
   --color-wood-dark: #8a3f1c;
   --color-green: #4e9a4b;
-  --color-green-dark: #2f6b33;
-  --color-rose: #e8588a;
   --color-rose-light: #f7a8c4;
-  --color-skin: #f1c29c;
   --color-stone: #e6c39a;
   --color-asphalt: #4b5262;
+  /* the one line colour every illustrated object is drawn with */
+  --color-line: #3b2b24;
 
   --font-display: "Anton SC", "Impact", sans-serif;
   --font-hand: "Caveat", "Comic Sans MS", cursive;
@@ -30,7 +28,6 @@
   color-scheme: light;
 }
 
-/* Only <html> paints the page colour, so painted backdrops (z-index -10) can sit just above it. */
 html {
   background: var(--color-paper);
 }
@@ -47,72 +44,19 @@ body {
   border-radius: 6px;
 }
 
-/* Comic halftone dots */
+/* Paper grain: a fine, warm texture for printed paper (tickets, labels) */
 .halftone {
-  background-image: radial-gradient(rgb(19 35 58 / 0.2) 1.2px, transparent 1.7px);
-  background-size: 7px 7px;
-}
-.halftone-light {
-  background-image: radial-gradient(rgb(255 246 230 / 0.35) 1.2px, transparent 1.7px);
-  background-size: 6px 6px;
-}
-.floorboards {
-  background-color: var(--color-wood);
-  background-image:
-    radial-gradient(rgb(19 35 58 / 0.18) 1.2px, transparent 1.7px),
-    repeating-linear-gradient(90deg, transparent 0 118px, rgb(19 35 58 / 0.55) 118px 121px);
-  background-size: 7px 7px, auto;
+  background-image: radial-gradient(rgb(59 43 36 / 0.08) 0.6px, transparent 1px);
+  background-size: 3px 3px;
 }
 
-@keyframes tick {
-  to { transform: rotate(360deg); }
-}
-.clock-hand {
-  transform-origin: 50% 50%;
-  transform-box: view-box;
-  animation: tick 60s steps(60) infinite;
+/* Every interactive object is a sticker: white outline + soft warm shadow */
+.sticker {
+  filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(4px 5px 0 rgb(59 43 36 / 0.3));
 }
 
-/* Avatar: walk cycle and wave */
-@keyframes av-bob { 50% { transform: translateY(-4px); } }
-@keyframes av-swing-a { 0%,100% { transform: rotate(14deg); } 50% { transform: rotate(-14deg); } }
-@keyframes av-swing-b { 0%,100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
-@keyframes av-wave { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-18deg); } }
-.av-bob { animation: av-bob 0.5s ease-in-out infinite; }
-.av-leg-a { animation: av-swing-a 0.5s ease-in-out infinite; }
-.av-leg-b { animation: av-swing-b 0.5s ease-in-out infinite; }
-.av-arm-a { animation: av-swing-b 0.5s ease-in-out infinite; }
-.av-arm-b { animation: av-swing-a 0.5s ease-in-out infinite; }
-.av-wave { animation: av-wave 0.6s ease-in-out 3; }
-
-/* Street: ground line sits higher on tall, narrow screens */
-.street-road { height: 26%; }
-.street-ground { bottom: 25%; }
-.street-feet { bottom: 19%; }
-.street-far { bottom: 26%; }
-@media (max-aspect-ratio: 3/4) {
-  .street-road { height: 38%; }
-  .street-ground { bottom: 37%; }
-  .street-feet { bottom: 31%; }
-  .street-far { bottom: 38%; }
-}
-
-@keyframes ferris { to { transform: rotate(360deg); } }
-.ferris-spin { animation: ferris 18s linear infinite; }
-
-/* TV channel animations */
-@keyframes eq { 0%,100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
-.eq-bar { transform-origin: bottom; animation: eq 0.7s ease-in-out infinite; }
-@keyframes spin { to { transform: translateX(-50%) rotate(360deg); } }
-.reel-spin { animation: spin 3s linear infinite; }
-@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-80%); } }
-@keyframes squash { 0%,100% { transform: scale(1.15, 0.85); } 15%,85% { transform: scale(1); } 50% { transform: scale(0.95, 1.05); } }
-.toon-bounce { animation: bounce 0.9s cubic-bezier(.5,0,.5,1) infinite; }
-.toon-squash { position: relative; animation: squash 0.9s ease-in-out infinite; transform-origin: bottom; }
-@keyframes serial { 0%,30% { transform: translateX(-50%) scale(1); } 34%,64% { transform: translateX(-50%) scale(1.5); } 68%,100% { transform: translateX(-50%) scale(2.2) translateY(8%); } }
-.serial-zoom { animation: serial 2.4s steps(1) infinite; transform-origin: 50% 12%; }
-
-/* Sticker avatar: a waddle while walking, a hop to say hi */
+/* Ashita's sticker: a waddle while walking, a hop to say hi */
 @keyframes sticker-walk { 0%,100% { transform: translateY(0) rotate(3deg); } 25% { transform: translateY(-3%) rotate(5deg); } 50% { transform: translateY(0) rotate(1deg); } 75% { transform: translateY(-3%) rotate(5deg); } }
 @keyframes sticker-walk-left { 0%,100% { transform: translateY(0) rotate(-3deg); } 25% { transform: translateY(-3%) rotate(-5deg); } 50% { transform: translateY(0) rotate(-1deg); } 75% { transform: translateY(-3%) rotate(-5deg); } }
 @keyframes sticker-hop { 0%,40%,100% { transform: translateY(0); } 15% { transform: translateY(-6%) rotate(-3deg); } 28% { transform: translateY(0); } }
@@ -120,55 +64,18 @@ body {
 .sticker-walk-left { animation: sticker-walk-left 0.55s ease-in-out infinite; }
 .sticker-hop { animation: sticker-hop 1.4s ease-in-out 3; }
 
-/* Every interactive object is a sticker: white outline + ink drop shadow */
-.sticker {
-  filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
-    drop-shadow(4px 5px 0 rgb(19 35 58 / 0.3));
-}
-
-/* TV static between channels */
-@keyframes static-shift { to { background-position: 40px 30px; } }
-.tv-static {
-  background-image:
-    radial-gradient(rgb(255 255 255 / 0.8) 1px, transparent 1.5px),
-    radial-gradient(rgb(19 35 58 / 0.9) 1px, transparent 1.5px);
-  background-size: 5px 5px, 7px 7px;
-  background-color: #8a8f99;
-  animation: static-shift 0.12s steps(3) infinite;
-}
-
-/* Scan lines on the TV screen */
-.scanlines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.05) 0 1px,
-    transparent 1px 3px
-  );
-}
-
-@keyframes city-pan {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.city-pan {
-  animation: city-pan 40s linear infinite;
-}
-
-@keyframes blink {
-  50% { opacity: 0; }
-}
-.rec-blink {
-  animation: blink 1.6s steps(1) infinite;
+/* Street and road: the ground line sits higher on tall, narrow screens */
+.street-road { height: 26%; }
+.street-ground { bottom: 25%; }
+.street-feet { bottom: 19%; }
+@media (max-aspect-ratio: 3/4) {
+  .street-road { height: 38%; }
+  .street-ground { bottom: 37%; }
+  .street-feet { bottom: 31%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .city-pan,
-  .rec-blink,
-  .clock-hand,
-  .av-bob, .av-leg-a, .av-leg-b, .av-arm-a, .av-arm-b, .av-wave,
-  .tv-static, .ferris-spin, .sticker-walk, .sticker-walk-left, .sticker-hop, .eq-bar, .reel-spin, .toon-bounce, .toon-squash, .serial-zoom {
-    animation: none;
-  }
+  .sticker-walk, .sticker-walk-left, .sticker-hop { animation: none; }
   *,
   *::before,
   *::after {

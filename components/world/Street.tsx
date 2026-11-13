@@ -8,7 +8,7 @@ import { animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion,
 import Avatar, { type Pose } from "./Avatar";
 import HandNote from "./HandNote";
 import Signboard from "./Signboard";
-import { Bench, Crossroads, Kiosk, PhoneBooth, TVStall } from "./StreetProps";
+import { Bench, Crossroads, Kiosk, PhoneBooth } from "./StreetProps";
 import ModeStrip from "../ModeStrip";
 
 /*
@@ -18,7 +18,7 @@ import ModeStrip from "../ModeStrip";
  * the avatar stays put on screen and walks while the world slides by.
  */
 
-type DestId = "tv" | "work" | "about" | "blog" | "contact";
+type DestId = "work" | "about" | "blog" | "contact";
 type Dest = {
   id: DestId;
   href: string;
@@ -35,9 +35,8 @@ type Dest = {
 };
 
 const DESTS: Dest[] = [
-  { id: "tv", href: "/tv", left: 46, height: 34, width: 25, stand: 38, label: "TV stall: Ashita's channels", note: "what's on tonight?", pose: "wave", fade: "bg-ink" },
-  { id: "work", href: "/work", left: 250, height: 48, width: 38, stand: 240, label: "Box office: Ashita's work, one ticket per project", note: "my ticket collection (my work!)", pose: "stand", fade: "bg-cream" },
-  { id: "about", href: "/about", left: 392, height: 50, width: 45, stand: 388, label: "Signpost: how I got here (About me)", note: "the long way round", pose: "stand", fade: "bg-paper" },
+  { id: "work", href: "/work", left: 120, height: 48, width: 38, stand: 110, label: "Box office: Ashita's work, one ticket per project", note: "my ticket collection (my work!)", pose: "stand", fade: "bg-cream" },
+  { id: "about", href: "/about", left: 262, height: 50, width: 45, stand: 258, label: "Signpost: how I got here (About me)", note: "the long way round", pose: "stand", fade: "bg-paper" },
   { id: "blog", href: "/blog", left: 532, height: 38, width: 37, stand: 524, label: "Bench with my journal: the blog", note: "someone left their diary…", pose: "read", fade: "bg-wood-dark" },
   { id: "contact", href: "/contact", left: 672, height: 54, width: 27, stand: 664, label: "Telephone booth: contact me", note: "ring me up?", pose: "phone", fade: "bg-red" },
 ];
@@ -49,7 +48,6 @@ const SCENES = [
   { src: "/world/chandnichowk.webp", w: 135, alt: "" },
   { src: "/world/lodhi.webp", w: 135, alt: "" },
   { src: "/world/indiagate.webp", w: 135, alt: "" },
-  { src: "/world/qutub.webp", w: 135, alt: "" },
 ];
 const TRACK = SCENES.reduce((a, s) => a + s.w, 0); // u
 const AVATAR_H = 34; // u
@@ -216,7 +214,7 @@ export default function Street() {
 
   const near = (d: Dest) => Math.abs(here - d.stand) < 16;
   const nearest = DESTS.find((d) => near(d));
-  const pose: Pose = walking ? "walk" : !greeted ? "wave" : nearest && nearest.id !== "tv" ? nearest.pose : "stand";
+  const pose: Pose = walking ? "walk" : !greeted ? "wave" : nearest ? nearest.pose : "stand";
 
   return (
     <main
@@ -262,7 +260,7 @@ export default function Street() {
           {/* destinations */}
           {DESTS.map((d) => {
             const Art =
-              d.id === "tv" ? <TVStall on={active === "tv" || near(d)} /> : d.id === "work" ? <Kiosk active={active === "work" || near(d)} /> : d.id === "about" ? <Crossroads /> : d.id === "blog" ? <Bench active={active === "blog" || near(d)} /> : <PhoneBooth active={active === "contact"} />;
+              d.id === "work" ? <Kiosk active={active === "work" || near(d)} /> : d.id === "about" ? <Crossroads /> : d.id === "blog" ? <Bench active={active === "blog" || near(d)} /> : <PhoneBooth active={active === "contact"} />;
             const showNote = near(d);
             return (
               <div key={d.id} data-dest={d.id} className="street-ground group absolute" style={{ left: u(d.left), height: u(d.height), width: u(d.width) }}>

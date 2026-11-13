@@ -23,9 +23,9 @@ export default function TicketBoard() {
 
   return (
     <>
-      <ul className="grid gap-x-10 gap-y-10 md:grid-cols-2 xl:gap-x-14">
+      <ul id="ticket-collection" className="grid gap-x-10 gap-y-12 md:grid-cols-2 xl:gap-x-14">
         {projects.map((p, i) => (
-          <Ticket key={p.slug} project={p} tilt={tilts[i % tilts.length]} onTearStart={(rect, tone) => setOpening({ rect, tone })} />
+          <Ticket key={p.slug} index={i} project={p} tilt={tilts[i % tilts.length]} onTearStart={(rect, tone) => setOpening({ rect, tone })} />
         ))}
       </ul>
 

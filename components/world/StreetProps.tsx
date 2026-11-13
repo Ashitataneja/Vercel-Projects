@@ -1,116 +1,20 @@
 /**
  * Things along Ashita's street, drawn in the same pop-art comic style as the
- * living room: thick ink outlines, flat palette fills, halftone dots.
+ * painted Delhi scenes: warm brown line, palette fills, soft painted shading.
  * Each takes an `active` flag for its "opening" moment (shutter rolls up,
  * booth door swings, TV flickers, journal lifts).
  */
-const INK = "#13233A";
-const S = 5;
+const INK = "#3b2b24"; // warm brown line, shared by every drawn object
+const S = 3.5;
 
+/** Soft painted shading (light from the top left), shared by every drawn object. */
 function Dots({ id }: { id: string }) {
   return (
-    <pattern id={id} width="9" height="9" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1.3" fill={INK} opacity=".2" />
-    </pattern>
-  );
-}
-
-/* ---------------- Home: the house, TV room seen through the window ---------------- */
-export function House({ tvOn }: { tvOn: boolean }) {
-  return (
-    <svg viewBox="0 0 400 330" className="h-full w-auto overflow-visible" aria-hidden="true">
-      <defs>
-        <Dots id="house-dots" />
-      </defs>
-      {/* building */}
-      <rect x="10" y="70" width="380" height="260" fill="#FFE3B3" stroke={INK} strokeWidth={S} />
-      <rect x="10" y="70" width="380" height="260" fill="url(#house-dots)" />
-      {/* roof */}
-      <path d="M-6 76 L60 10 H340 L406 76 Z" fill="#D9482B" stroke={INK} strokeWidth={S} strokeLinejoin="round" />
-      <path d="M40 54 H360 M22 70 H378" stroke={INK} strokeWidth="3" opacity=".4" />
-      <rect x="300" y="-18" width="34" height="50" fill="#C8662E" stroke={INK} strokeWidth={S} />
-      {/* door */}
-      <rect x="34" y="190" width="70" height="140" rx="4" fill="#006BB9" stroke={INK} strokeWidth={S} />
-      <circle cx="90" cy="262" r="5" fill="#FFC973" stroke={INK} strokeWidth="2.5" />
-      <rect x="44" y="204" width="50" height="40" fill="#30A0E0" stroke={INK} strokeWidth="3" />
-      <rect x="26" y="322" width="86" height="10" fill="#8A3F1C" stroke={INK} strokeWidth="3" />
-      {/* house number */}
-      <rect x="54" y="160" width="30" height="22" rx="3" fill="#FFF6E6" stroke={INK} strokeWidth="3" />
-      <text x="69" y="177" textAnchor="middle" fontSize="16" fontWeight="800" fill={INK}>01</text>
-
-      {/* big window into the TV room */}
-      <rect x="128" y="110" width="236" height="170" fill="#FFF6E6" stroke={INK} strokeWidth={S} />
-      <g>
-        {/* room interior */}
-        <rect x="132" y="114" width="228" height="162" fill="#FFF6E6" />
-        <rect x="132" y="236" width="228" height="40" fill="#C8662E" />
-        <circle cx="168" cy="146" r="16" fill="#D9482B" stroke={INK} strokeWidth="3" />
-        <circle cx="168" cy="146" r="11" fill="#FFF6E6" />
-        <path d="M168 146 L168 138 M168 146 L174 149" stroke={INK} strokeWidth="2" />
-        <rect x="292" y="126" width="44" height="52" fill="#FFF6E6" stroke={INK} strokeWidth="3" />
-        <rect x="298" y="132" width="32" height="40" fill="#006BB9" />
-        <circle cx="314" cy="148" r="8" fill="#D9482B" stroke={INK} strokeWidth="2" />
-        {/* cabinet */}
-        <rect x="196" y="218" width="104" height="26" fill="#C8662E" stroke={INK} strokeWidth="3" />
-        {/* tv */}
-        <path d="M222 164 L210 146 M236 164 L250 146" stroke={INK} strokeWidth="3" strokeLinecap="round" />
-        <rect x="204" y="162" width="88" height="58" rx="8" fill="#C8662E" stroke={INK} strokeWidth="3.5" />
-        <rect x="210" y="168" width="64" height="46" rx="6" fill={tvOn ? "#30A0E0" : "#13233A"} stroke={INK} strokeWidth="3" />
-        {tvOn && (
-          <>
-            <circle cx="260" cy="180" r="6" fill="#FFC973" />
-            <path d="M212 206 L226 194 L236 202 L250 188 L272 206 Z" fill="#FFF6E6" stroke={INK} strokeWidth="2" />
-            <rect x="214" y="172" width="18" height="8" fill="#FFC973" stroke={INK} strokeWidth="1.5" />
-          </>
-        )}
-        <circle cx="283" cy="180" r="4" fill="#FFC973" stroke={INK} strokeWidth="2" />
-        <circle cx="283" cy="196" r="4" fill="#FFE3B3" stroke={INK} strokeWidth="2" />
-        {/* armchair back, from behind */}
-        <path d="M300 276 V236 Q300 220 316 220 H346 Q360 222 360 236 V276 Z" fill="#4E9A4B" stroke={INK} strokeWidth="3" />
-      </g>
-      {/* window frame + glare */}
-      <path d="M246 110 V280 M128 194 H364" stroke={INK} strokeWidth="4" opacity=".0" />
-      <path d="M140 270 L190 120 M160 270 L210 120" stroke="#FFFFFF" strokeWidth="8" opacity=".35" />
-      <rect x="128" y="110" width="236" height="170" fill="none" stroke={INK} strokeWidth={S} />
-      <rect x="118" y="280" width="256" height="14" fill="#FFC973" stroke={INK} strokeWidth="4" />
-      {/* plant on sill */}
-      <path d="M340 280 l-6 -18 h24 l-6 18z" fill="#D9482B" stroke={INK} strokeWidth="3" />
-      <path d="M346 262 q-10 -16 -2 -26 q6 12 2 26 q6 -18 16 -20 q-2 14 -16 20" fill="#4E9A4B" stroke={INK} strokeWidth="2.5" />
-    </svg>
-  );
-}
-
-/* ---------------- TV: a retro set on a little stall ---------------- */
-export function TVStall({ on }: { on: boolean }) {
-  return (
-    <svg viewBox="0 0 220 300" className="h-full w-auto overflow-visible" aria-hidden="true">
-      <path d="M92 70 L60 16 M128 70 L162 20" stroke={INK} strokeWidth="6" strokeLinecap="round" />
-      <circle cx="60" cy="16" r="7" fill={INK} />
-      <circle cx="162" cy="20" r="7" fill={INK} />
-      <path d="M80 74 A30 22 0 0 1 140 74Z" fill={INK} />
-      <rect x="14" y="70" width="192" height="140" rx="22" fill="#C8662E" stroke={INK} strokeWidth={S} />
-      <rect x="28" y="84" width="128" height="112" rx="16" fill={INK} />
-      <rect x="36" y="92" width="112" height="96" rx="12" fill={on ? "#30A0E0" : "#2a3d58"} />
-      {on && (
-        <>
-          <circle cx="126" cy="114" r="10" fill="#FFC973" />
-          <path d="M38 184 L64 152 L82 170 L106 140 L146 184 Z" fill="#FFF6E6" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
-          <rect x="44" y="100" width="34" height="12" rx="2" fill="#FFC973" stroke={INK} strokeWidth="2" />
-        </>
-      )}
-      <path d="M44 100 L70 130" stroke="#fff" strokeWidth="8" opacity=".2" strokeLinecap="round" />
-      <rect x="164" y="84" width="30" height="112" rx="8" fill="#8A3F1C" stroke={INK} strokeWidth="3.5" />
-      <circle cx="179" cy="104" r="9" fill="#FFC973" stroke={INK} strokeWidth="3" />
-      <circle cx="179" cy="130" r="7" fill="#FFE3B3" stroke={INK} strokeWidth="3" />
-      {[150, 160, 170, 180].map((y) => (
-        <line key={y} x1="170" y1={y} x2="188" y2={y} stroke={INK} strokeWidth="3" strokeLinecap="round" />
-      ))}
-      {/* stall table */}
-      <rect x="0" y="210" width="220" height="20" fill="#FFC973" stroke={INK} strokeWidth={S} />
-      <path d="M20 230 L12 300 M200 230 L208 300" stroke={INK} strokeWidth="10" strokeLinecap="round" />
-      <rect x="30" y="236" width="160" height="34" rx="4" fill="#D9482B" stroke={INK} strokeWidth="4" />
-      <text x="110" y="261" textAnchor="middle" fontSize="20" fontWeight="900" letterSpacing="3" fill="#FFF6E6">NOW ON TV</text>
-    </svg>
+    <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
+      <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
+      <stop offset="1" stopColor={INK} stopOpacity="0.28" />
+    </linearGradient>
   );
 }
 
@@ -125,7 +29,7 @@ export function Kiosk({ active }: { active: boolean }) {
         </clipPath>
       </defs>
       {/* sign */}
-      <rect x="30" y="8" width="200" height="44" rx="6" fill="#13233A" stroke={INK} strokeWidth={S} />
+      <rect x="30" y="8" width="200" height="44" rx="6" fill={INK} stroke={INK} strokeWidth={S} />
       <text x="130" y="40" textAnchor="middle" fontSize="26" fontWeight="900" letterSpacing="3" fill="#FFC973" fontFamily="Anton SC, Impact, sans-serif">
         BOX OFFICE
       </text>
@@ -165,7 +69,7 @@ export function Kiosk({ active }: { active: boolean }) {
       {/* counter */}
       <rect x="30" y="240" width="200" height="16" fill="#C8662E" stroke={INK} strokeWidth="4" />
       <text x="130" y="292" textAnchor="middle" fontSize="18" fontWeight="800" letterSpacing="2" fill="#FFF6E6">ADMIT ONE</text>
-      <rect x="14" y="324" width="232" height="10" fill="#13233A" />
+      <rect x="14" y="324" width="232" height="10" fill={INK} />
     </svg>
   );
 }
@@ -194,7 +98,7 @@ export function Bench({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 320 330" className="h-full w-auto overflow-visible" aria-hidden="true">
       {/* street lamp */}
-      <rect x="270" y="60" width="12" height="270" fill="#13233A" />
+      <rect x="270" y="60" width="12" height="270" fill={INK} />
       <path d="M252 60 H300 L292 30 H260 Z" fill="#FFC973" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
       <path d="M262 64 L230 160 H322 L290 64" fill="#FFC973" opacity={active ? 0.35 : 0.15} />
       {/* bench */}
@@ -206,7 +110,7 @@ export function Bench({ active }: { active: boolean }) {
       <g style={{ transform: active ? "translate(0,-26px) rotate(-6deg)" : "none", transformOrigin: "150px 250px", transition: "transform .4s cubic-bezier(.3,1.4,.5,1)" }}>
         <rect x="112" y="234" width="76" height="22" rx="3" fill="#FFF6E6" stroke={INK} strokeWidth="3" />
         <rect x="108" y="226" width="84" height="16" rx="3" fill="#D9482B" stroke={INK} strokeWidth="4" />
-        <rect x="170" y="226" width="6" height="30" fill="#13233A" />
+        <rect x="170" y="226" width="6" height="30" fill={INK} />
         <path d="M130 256 v14 l5 -4 l5 4 v-14" fill="#FFC973" stroke={INK} strokeWidth="2" />
       </g>
       {/* a coffee cup */}
@@ -226,12 +130,12 @@ export function PhoneBooth({ active }: { active: boolean }) {
       <path d="M10 60 Q10 20 85 14 Q160 20 160 60 Z" fill="#D9482B" stroke={INK} strokeWidth={S} strokeLinejoin="round" />
       <rect x="10" y="56" width="150" height="284" fill="#D9482B" stroke={INK} strokeWidth={S} />
       <rect x="10" y="56" width="150" height="284" fill="url(#booth-dots)" />
-      <rect x="26" y="64" width="118" height="24" fill="#13233A" stroke={INK} strokeWidth="3" />
+      <rect x="26" y="64" width="118" height="24" fill={INK} stroke={INK} strokeWidth="3" />
       <text x="85" y="82" textAnchor="middle" fontSize="15" fontWeight="900" letterSpacing="2" fill="#FFF6E6">TELEPHONE</text>
       {/* inside: the rotary phone on a shelf */}
       <rect x="28" y="100" width="114" height="220" fill="#FFF6E6" stroke={INK} strokeWidth="4" />
       <rect x="44" y="200" width="82" height="10" fill="#C8662E" stroke={INK} strokeWidth="2.5" />
-      <path d="M58 200 L64 172 H106 L112 200 Z" fill="#13233A" />
+      <path d="M58 200 L64 172 H106 L112 200 Z" fill={INK} />
       <circle cx="85" cy="186" r="11" fill="#FFE3B3" stroke={INK} strokeWidth="2.5" />
       <path d="M56 170 Q56 158 70 158 H100 Q114 158 114 170" fill="none" stroke={INK} strokeWidth="7" strokeLinecap="round" />
       {/* door: swings open */}
@@ -242,19 +146,6 @@ export function PhoneBooth({ active }: { active: boolean }) {
         )}
         <rect x="128" y="200" width="8" height="30" rx="3" fill="#FFC973" stroke={INK} strokeWidth="2" />
       </g>
-    </svg>
-  );
-}
-
-/* ---------------- far background: rooftops and sky shapes ---------------- */
-export function FarSkyline() {
-  return (
-    <svg viewBox="0 0 800 160" className="h-full w-auto shrink-0" preserveAspectRatio="xMinYMax meet" aria-hidden="true">
-      <path
-        d="M0 160 V110 H40 V80 H90 V120 H120 V60 H150 V40 H170 V60 H200 V100 H250 V70 Q280 40 310 70 V110 H360 V90 H420 V50 H460 V100 H520 V76 H560 V120 H600 V64 L630 40 L660 64 V110 H720 V86 H780 V120 H800 V160 Z"
-        fill="#30A0E0"
-        opacity=".45"
-      />
     </svg>
   );
 }

@@ -47,9 +47,9 @@ const STYLE: Record<Project["style"], { top: string; bottom: string; note: strin
 
 const TEAR_AT = 70; // px of pull before the paper gives
 
-type Props = { project: Project; tilt: number; onTearStart: (rect: DOMRect, tone: Project["tone"]) => void };
+type Props = { project: Project; tilt: number; index?: number; onTearStart: (rect: DOMRect, tone: Project["tone"]) => void };
 
-export default function Ticket({ project, tilt, onTearStart }: Props) {
+export default function Ticket({ project, tilt, index = 0, onTearStart }: Props) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const ref = useRef<HTMLAnchorElement>(null);
@@ -82,9 +82,11 @@ export default function Ticket({ project, tilt, onTearStart }: Props) {
   return (
     <motion.li
       className="relative list-none"
-      style={{ rotate: tilt }}
+      // tickets rise out of the keepsake box one after another
+      initial={reduce ? false : { opacity: 0, y: -260, scale: 0.5, rotate: tilt * 5 }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotate: tilt }}
       whileHover={reduce || torn ? undefined : { rotate: 0, y: -4 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      transition={{ type: "spring", stiffness: 160, damping: 18, delay: reduce ? 0 : 0.35 + index * 0.09 }}
     >
       <Link
         ref={ref}

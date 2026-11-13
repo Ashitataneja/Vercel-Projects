@@ -10,14 +10,13 @@ export const modes: Mode[] = [
   { href: "/", label: "Home", name: "Home" },
   { href: "/work", label: "Work", name: "Work" },
   { href: "/about", label: "About", name: "About me" },
-  { href: "/tv", label: "TV", name: "TV" },
   { href: "/blog", label: "Blog", name: "Blog" },
   { href: "/contact", label: "Contact", name: "Contact" },
 ];
 
 /* ------------------------------------------------------------------ */
 /* Work: one ticket per project. Titles and clients are from the CV;   */
-/* everything else stays [PLACEHOLDER] until the case studies arrive.  */
+/* the case-study write-ups come later.                                */
 /* ------------------------------------------------------------------ */
 export type Project = {
   slug: string;
@@ -55,6 +54,10 @@ export type JourneyStop = {
   when: string;
   role: string;
   points: string[];
+  /** what this chapter added to how I work (from the CV) */
+  skills: string[];
+  /** Ashita's own photo or illustration for this stop, once she provides it */
+  image?: { src: string; alt: string };
   /** small drawn landmark on the map */
   icon: "college" | "office" | "book" | "megaphone" | "pencil" | "rocket" | "flag";
 };
@@ -70,6 +73,7 @@ export const journey: JourneyStop[] = [
       "Joint Secretary of the Placement Cell: secured participation from 30+ companies.",
       "Graphic design internship at Bloody Donut (2021).",
     ],
+    skills: ["Leadership", "Event planning", "Stakeholder outreach"],
     icon: "college",
   },
   {
@@ -81,6 +85,7 @@ export const journey: JourneyStop[] = [
       "Assessed internal control procedures at Pine Labs for regulatory compliance.",
       "Analysed financial data, procedures and reports to find risks and keep documentation accurate.",
     ],
+    skills: ["Audit", "Internal controls", "Risk analysis", "Documentation"],
     icon: "office",
   },
   {
@@ -89,6 +94,7 @@ export const journey: JourneyStop[] = [
     when: "2021 – 2023",
     role: "MA in Psychology",
     points: ["Behavioural psychology, survey design and insight synthesis became part of how I design."],
+    skills: ["Behavioural psychology", "Survey design", "Insight synthesis"],
     icon: "book",
   },
   {
@@ -101,6 +107,7 @@ export const journey: JourneyStop[] = [
       "Built a go-to-market (GTM) strategy that led to a 15% increase in discovery.",
       "Won the social media mandate for Anytime Fitness.",
     ],
+    skills: ["Integrated campaigns", "Go-to-market strategy", "Client pitching"],
     icon: "megaphone",
   },
   {
@@ -113,6 +120,7 @@ export const journey: JourneyStop[] = [
       "Designed and prototyped UIs for a Y Combinator-pitched fintech product.",
       "Built a design system for Ember; researched and rewrote UX copy to reduce bounce rate.",
     ],
+    skills: ["Prototyping", "Design systems", "UX writing", "Illustration"],
     icon: "pencil",
   },
   {
@@ -125,6 +133,7 @@ export const journey: JourneyStop[] = [
       "Led a point-of-sale (POS) system for Ferns and Petals.",
       "Ran end-to-end research for a loyalty programme.",
     ],
+    skills: ["Product management", "Dashboard analytics", "Point-of-sale", "User research"],
     icon: "rocket",
   },
   {
@@ -136,6 +145,7 @@ export const journey: JourneyStop[] = [
       "UX design internship at Delhi Technological University (2025).",
       "Product design internship at HDFC Bank (current).",
     ],
+    skills: ["Interaction design", "Product design", "User research"],
     icon: "flag",
   },
 ];
@@ -159,11 +169,8 @@ export const directory = [
 ] as const;
 
 /* ------------------------------------------------------------------ */
-/* Blog: journal entries. [PLACEHOLDER] until real posts exist.        */
+/* Blog: journal entries. Empty until Ashita's posts are copied in;    */
+/* the journal shows its own pages until then.                         */
 /* ------------------------------------------------------------------ */
-export const journalEntries = [
-  { id: "e1", date: "[DATE]", title: "[PLACEHOLDER: first entry title]", body: "[PLACEHOLDER: a short entry, written like a diary page.]", photo: "[PLACEHOLDER: photo caption]" },
-  { id: "e2", date: "[DATE]", title: "[PLACEHOLDER: second entry title]", body: "[PLACEHOLDER: what you noticed on a photowalk.]", photo: "[PLACEHOLDER: photo caption]" },
-  { id: "e3", date: "[DATE]", title: "[PLACEHOLDER: third entry title]", body: "[PLACEHOLDER: a design thought worth keeping.]", photo: "[PLACEHOLDER: photo caption]" },
-  { id: "e4", date: "[DATE]", title: "[PLACEHOLDER: fourth entry title]", body: "[PLACEHOLDER: one more page.]", photo: "[PLACEHOLDER: photo caption]" },
-];
+export type JournalEntry = { id: string; date: string; title: string; body: string };
+export const journalEntries: JournalEntry[] = [];

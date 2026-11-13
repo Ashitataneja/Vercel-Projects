@@ -4,8 +4,8 @@ import { modes } from "@/lib/site";
 type Props = {
   /** href of the current page */
   current: string;
-  /** "tv" sits inside the TV bezel; "dock" is fixed to the bottom of inner pages */
-  variant?: "tv" | "dock";
+  /** "inline" sits in the page flow; "dock" is fixed to the bottom of the screen */
+  variant?: "inline" | "dock";
 };
 
 /**

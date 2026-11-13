@@ -4,8 +4,8 @@
  */
 import type { JourneyStop } from "@/lib/site";
 
-const INK = "#13233A";
-const S = 5;
+const INK = "#3b2b24"; // warm brown line, shared by every drawn object
+const S = 3.5;
 
 function College() {
   return (

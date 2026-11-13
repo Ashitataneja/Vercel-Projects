@@ -7,12 +7,6 @@ const toneBg: Record<Project["tone"], string> = {
   paper: "bg-paper",
 };
 
-const meta = [
-  { label: "Role", value: "[PLACEHOLDER]" },
-  { label: "Timeline", value: "[PLACEHOLDER]" },
-  { label: "Kit", value: "[PLACEHOLDER]" },
-  { label: "Stops", value: "4" },
-];
 
 /** The inside of the torn ticket: same colour, ripped bottom edge. */
 export default function CaseHeader({ project }: { project: Project }) {
@@ -25,14 +19,6 @@ export default function CaseHeader({ project }: { project: Project }) {
         </p>
         <h1 className="mt-3 font-display text-[clamp(2.75rem,10vw,6rem)] uppercase leading-[0.9]">{project.title}</h1>
         <p className="mt-3 text-lg font-semibold">{project.client}</p>
-        <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border-[3px] border-ink bg-ink sm:grid-cols-4">
-          {meta.map((m) => (
-            <div key={m.label} className="bg-paper px-4 py-3">
-              <dt className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-soft">{m.label}</dt>
-              <dd className="mt-1 font-semibold">{m.value}</dd>
-            </div>
-          ))}
-        </dl>
       </div>
       {/* ripped edge */}
       <svg aria-hidden="true" viewBox="0 0 100 4" preserveAspectRatio="none" className="absolute inset-x-0 -bottom-[11px] h-3 w-full">
