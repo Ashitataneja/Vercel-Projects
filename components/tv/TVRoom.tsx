@@ -7,17 +7,7 @@ import ModeStrip from "../ModeStrip";
 import Avatar from "../world/Avatar";
 import HandNote from "../world/HandNote";
 import { CHANNELS, ChannelScreen } from "./Channels";
-import {
-  Armchair,
-  Bookshelf,
-  Cabinet,
-  Clock,
-  FlowerPoster,
-  Rug,
-  SideTable,
-  SmallFrame,
-  Window,
-} from "../home/Room";
+import PaintedBackdrop from "../world/PaintedBackdrop";
 
 export default function TVRoom() {
   const reduce = useReducedMotion();
@@ -56,7 +46,8 @@ export default function TVRoom() {
   const c = CHANNELS[ch];
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-paper">
+    <main className="relative min-h-dvh overflow-hidden">
+      <PaintedBackdrop src="/world/street.webp" position="22% 70%" wash="none" />
       <h1 className="sr-only">Ashita&apos;s TV: turn the knob to change channels</h1>
 
       <Link
@@ -67,42 +58,11 @@ export default function TVRoom() {
       </Link>
 
       <div className="relative flex min-h-dvh flex-col pb-20">
-        {/* ---------- Room (decorative) ---------- */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          {/* wall shading */}
-          <div className="halftone absolute inset-0 [mask-image:radial-gradient(ellipse_at_50%_35%,transparent_45%,black_100%)]" />
-          {/* floor */}
-          <div className="floorboards absolute inset-x-0 bottom-0 h-[24%] border-t-[5px] border-ink" />
-          <div className="absolute inset-x-0 bottom-[24%] h-3 border-t-[5px] border-ink bg-wood-dark" />
-
-          <div className="absolute -left-24 top-0 h-[70%] sm:-left-10 lg:left-0">
-            <Window />
-          </div>
-          <div className="absolute left-[30%] top-[8%] h-16 w-16 sm:left-[22%] sm:top-[10%] sm:h-24 sm:w-24 lg:left-[20%] lg:h-28 lg:w-28">
-            <Clock />
-          </div>
-          <div className="absolute right-[6%] top-[11%] h-28 w-24 sm:right-auto sm:left-[62%] sm:top-[6%] sm:h-40 sm:w-36 md:left-[68%] lg:left-[64%] lg:h-48 lg:w-44">
-            <FlowerPoster />
-          </div>
-          <div className="absolute left-[34%] top-[5%] hidden h-32 w-24 lg:block">
-            <SmallFrame />
-          </div>
-          <div className="absolute -right-6 bottom-[22%] hidden h-[74%] md:block lg:right-0">
-            <Bookshelf />
-          </div>
-          <div className="absolute bottom-[20%] left-[2%] hidden h-[34%] lg:block">
-            <SideTable />
-          </div>
-          <div className="absolute bottom-[3%] left-1/2 h-[10%] w-[92vw] max-w-[760px] -translate-x-[58%]">
-            <Rug />
-          </div>
-        </div>
-
         {/* ---------- TV on its cabinet ---------- */}
         <div
-          className="relative z-10 flex flex-1 flex-col items-center justify-end px-3 pt-24 pb-[13dvh] [--tv:min(92vw,640px,64dvh)] sm:pt-28"
+          className="relative z-10 flex flex-1 flex-col items-center justify-end px-3 pt-24 pb-[9dvh] [--tv:min(92vw,640px,64dvh)] sm:pt-28"
         >
-          <div className="w-[var(--tv)]">
+          <div className="sticker w-[var(--tv)]">
             {/* antenna */}
             <svg viewBox="0 0 240 90" className="mx-auto -mb-2 block w-[46%]" aria-hidden="true">
               <line x1="120" y1="80" x2="34" y2="8" stroke="#13233A" strokeWidth="7" strokeLinecap="round" />
@@ -191,20 +151,21 @@ export default function TVRoom() {
           <div aria-hidden="true" className="pointer-events-none absolute bottom-[8dvh] left-[2%] z-20 hidden h-[40dvh] lg:block xl:left-[8%]">
             <Avatar pose="stand" facing="right" className="h-full w-auto" />
             <span className="absolute -top-6 left-[60%] w-max rotate-[-4deg]">
-              <HandNote arrow="right">{c.tag}</HandNote>
+              <HandNote arrow="right" className="rounded-md bg-paper/90 px-2">{c.tag}</HandNote>
             </span>
           </div>
 
-          {/* cabinet */}
-          <div className="-mt-1 w-[min(98vw,calc(var(--tv)*1.12))]">
-            <Cabinet />
+          {/* the stall it stands on */}
+          <div aria-hidden="true" className="sticker -mt-1 w-[min(98vw,calc(var(--tv)*1.08))]">
+            <div className="h-5 border-[4px] border-ink bg-butter" />
+            <div className="mx-[6%] flex items-start justify-between">
+              <span className="h-20 w-3 bg-ink" />
+              <span className="mt-2 rounded-md border-[4px] border-ink bg-red px-4 py-1 text-sm font-black uppercase tracking-[0.25em] text-paper sm:text-base">Now on TV</span>
+              <span className="h-20 w-3 bg-ink" />
+            </div>
           </div>
         </div>
 
-        {/* armchair in the foreground: you're the one watching */}
-        <div aria-hidden="true" className="pointer-events-none absolute -right-[22%] bottom-0 z-20 h-[24dvh] sm:-right-[8%] sm:h-[30dvh] lg:right-0 lg:h-[36dvh]">
-          <Armchair />
-        </div>
       </div>
       <ModeStrip current="/tv" />
     </main>

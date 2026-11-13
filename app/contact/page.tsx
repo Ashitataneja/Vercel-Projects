@@ -4,6 +4,7 @@ import ModeStrip from "@/components/ModeStrip";
 import RotaryPhone from "@/components/contact/RotaryPhone";
 import Avatar from "@/components/world/Avatar";
 import HandNote from "@/components/world/HandNote";
+import PaintedBackdrop from "@/components/world/PaintedBackdrop";
 
 export const metadata: Metadata = { title: "Contact" };
 
@@ -11,9 +12,11 @@ export default function Contact() {
   return (
     <>
       {/* inside the red telephone booth */}
-      <main className="relative min-h-dvh overflow-hidden bg-red px-3 pb-36 pt-6 sm:px-6 sm:pt-8">
-        <div aria-hidden="true" className="halftone pointer-events-none absolute inset-0 opacity-60" />
-        <div className="relative mx-auto max-w-6xl rounded-[18px] border-[5px] border-ink bg-paper px-5 pb-12 pt-6 shadow-[8px_8px_0_var(--color-ink)] sm:px-10">
+      <main className="relative min-h-dvh overflow-hidden px-3 pb-36 pt-6 sm:px-6 sm:pt-8">
+        <PaintedBackdrop src="/world/indiagate.webp" position="50% 40%" wash="none" />
+        {/* the booth: red frame, paper inside */}
+        <div className="sticker relative mx-auto max-w-6xl rounded-t-[48px] rounded-b-[14px] border-[5px] border-ink bg-red p-3 sm:p-4">
+        <div className="relative rounded-t-[36px] rounded-b-[8px] border-[4px] border-ink bg-paper px-5 pb-12 pt-6 sm:px-10">
           <div className="flex items-start justify-between gap-4">
             <Link href="/" className="inline-flex min-h-11 items-center rounded-full border-[3px] border-ink bg-paper px-4 text-sm font-bold shadow-[3px_3px_0_var(--color-ink)]">
               ← Street
@@ -37,6 +40,7 @@ export default function Contact() {
             </div>
           </header>
           <RotaryPhone />
+        </div>
         </div>
       </main>
       <ModeStrip current="/contact" />

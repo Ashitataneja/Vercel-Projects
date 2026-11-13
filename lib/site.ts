@@ -147,9 +147,8 @@ export const directory = [
   {
     digit: 1,
     label: "LinkedIn",
-    // [PLACEHOLDER] replace with Ashita's LinkedIn profile URL
-    href: "https://www.linkedin.com/",
-    note: "[PLACEHOLDER: LinkedIn URL]",
+    href: "https://www.linkedin.com/in/ashita-taneja-2000/",
+    note: "linkedin.com/in/ashita-taneja-2000",
   },
   {
     digit: 2,

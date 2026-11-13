@@ -182,7 +182,7 @@ export default function Journal() {
           aria-haspopup="dialog"
           aria-label="Open Ashita's journal"
           whileHover={reduce ? undefined : { rotate: -1, y: -6 }}
-          className="relative aspect-[3/4] w-[min(78vw,360px)] rotate-[-3deg] rounded-r-[18px] rounded-l-[6px] border-[5px] border-ink bg-red text-left shadow-[12px_12px_0_rgb(19_35_58/0.35)]"
+          className="sticker relative aspect-[3/4] w-[min(78vw,360px)] rotate-[-3deg] rounded-r-[18px] rounded-l-[6px] border-[5px] border-ink bg-red text-left shadow-[12px_12px_0_rgb(19_35_58/0.35)]"
         >
           <span aria-hidden="true" className="halftone absolute inset-0 rounded-r-[14px] opacity-70" />
           <span aria-hidden="true" className="absolute inset-y-0 left-[9%] w-[4px] bg-ink/60" />

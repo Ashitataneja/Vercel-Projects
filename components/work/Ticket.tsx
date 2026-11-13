@@ -101,7 +101,7 @@ export default function Ticket({ project, tilt, onTearStart }: Props) {
           tear();
         }}
         aria-label={`${project.title}, ${project.client}. Tear the ticket to open the case study.`}
-        className="group relative flex min-h-[156px] touch-pan-y select-none rounded-[6px] focus-visible:outline-offset-8 sm:min-h-[180px]"
+        className="sticker group relative flex min-h-[156px] touch-pan-y select-none rounded-[6px] focus-visible:outline-offset-8 sm:min-h-[180px]"
       >
         {/* ---------- ticket body ---------- */}
         <motion.span
@@ -183,7 +183,7 @@ export default function Ticket({ project, tilt, onTearStart }: Props) {
           </span>
         </motion.span>
       </Link>
-      <span aria-hidden="true" className="pointer-events-none absolute -bottom-7 right-4 rotate-[-3deg] font-hand text-xl text-ink-soft opacity-0 transition-opacity duration-300 [li:hover_&]:opacity-100">
+      <span aria-hidden="true" className="pointer-events-none absolute -bottom-8 right-4 rotate-[-3deg] rounded-md bg-paper/90 px-2 font-hand text-xl text-ink opacity-0 transition-opacity duration-300 [li:hover_&]:opacity-100">
         {STYLE[project.style].note}
       </span>
     </motion.li>

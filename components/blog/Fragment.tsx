@@ -13,7 +13,7 @@ export default function Fragment({ caption, story, tilt, className = "" }: { cap
       onClick={() => setFlipped((f) => !f)}
       aria-pressed={flipped}
       aria-label={flipped ? `${caption}. On the back: ${story}` : `Photo: ${caption}. Flip it over`}
-      className={`relative block w-40 [perspective:800px] sm:w-48 ${className}`}
+      className={`sticker relative block w-40 [perspective:800px] sm:w-48 ${className}`}
       style={{ rotate: `${tilt}deg` }}
     >
       <motion.span
