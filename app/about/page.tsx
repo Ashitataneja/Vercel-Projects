@@ -1,29 +1,26 @@
 import type { Metadata } from "next";
-import PageShell from "@/components/PageShell";
-import { cityStops } from "@/lib/site";
+import ModeStrip from "@/components/ModeStrip";
+import JourneyMap from "@/components/about/JourneyMap";
 
 export const metadata: Metadata = { title: "About me" };
 
 export default function About() {
   return (
-    <PageShell
-      current="/about"
-      tone="city"
-      eyebrow="You're inside the TV"
-      title="Ashita's city"
-      intro="[PLACEHOLDER] The city walk goes here, using the illustrations from Figma. For now, the stops in order:"
-    >
-      <ol className="space-y-4">
-        {cityStops.map((s, i) => (
-          <li key={s.id} className="flex gap-4 rounded-2xl border-[3px] border-ink bg-paper p-4 text-ink">
-            <span className="font-display text-3xl text-wood-dark">{String(i + 1).padStart(2, "0")}</span>
-            <span>
-              <span className="block font-bold">{s.name}</span>
-              <span className="block text-ink-soft">{s.note}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </PageShell>
+    <>
+      <main className="relative min-h-dvh bg-paper px-4 pb-72 pt-10 sm:px-8 sm:pt-14 lg:pb-36">
+        <div className="mx-auto max-w-7xl">
+          <header className="mb-8">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-wood-dark">About me · a map</p>
+            <h1 className="mt-2 font-display text-[clamp(3rem,11vw,6rem)] uppercase leading-[0.9]">How I got here.</h1>
+            <p className="mt-4 max-w-2xl text-lg text-ink-soft">
+              I&apos;m Ashita. I studied commerce and psychology, worked in audit, marketing and product, and now design. Walk the
+              route one stop at a time.
+            </p>
+          </header>
+          <JourneyMap />
+        </div>
+      </main>
+      <ModeStrip current="/about" />
+    </>
   );
 }

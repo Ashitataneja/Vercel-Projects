@@ -29,7 +29,7 @@ export default function ModeStrip({ current, variant = "dock" }: Props) {
         }`}
       >
         {modes.map((m) => {
-          const active = m.href === current;
+          const active = m.href === "/" ? current === "/" : current === m.href || current.startsWith(m.href + "/");
           return (
             <li key={m.href} className="shrink-0">
               <Link
