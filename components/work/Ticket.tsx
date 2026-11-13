@@ -36,6 +36,15 @@ function ripEdge(side: "right" | "left") {
 const BODY_RIP = ripEdge("right");
 const STUB_RIP = ripEdge("left");
 
+/** Printed details that make each ticket a different kind of ticket. */
+const STYLE: Record<Project["style"], { top: string; bottom: string; note: string }> = {
+  cinema: { top: "Admit one · Screen 2", bottom: "Row F · Seat 12", note: "first-day first-show" },
+  train: { top: "Boarding pass · Platform 3", bottom: "Coach B2 · Berth 34", note: "a long journey" },
+  bus: { top: "Bus ticket · Route 7", bottom: "Fare paid · keep till end", note: "kept it for years" },
+  museum: { top: "Museum entry · Gallery 5", bottom: "Valid for one visit", note: "visited twice" },
+  concert: { top: "Live · Gate 4", bottom: "Standing · no re-entry", note: "loud & lovely" },
+};
+
 const TEAR_AT = 70; // px of pull before the paper gives
 
 type Props = { project: Project; tilt: number; onTearStart: (rect: DOMRect, tone: Project["tone"]) => void };
@@ -103,15 +112,34 @@ export default function Ticket({ project, tilt, onTearStart }: Props) {
           className={`relative flex flex-1 flex-col justify-between rounded-l-[14px] border-[4px] border-r-0 border-ink p-4 pr-6 shadow-[6px_6px_0_var(--color-ink)] sm:p-5 sm:pr-7 ${toneBg[project.tone]}`}
         >
           <span className="halftone pointer-events-none absolute inset-0 rounded-l-[10px] opacity-60" />
+          {/* washi tape holding it in the collection */}
+          <span className="absolute -left-3 -top-3 h-5 w-16 -rotate-[24deg] bg-rose-light/80" />
+          {project.style === "train" && <span className="pointer-events-none absolute inset-x-0 top-[38%] h-3 bg-[repeating-linear-gradient(90deg,var(--color-red)_0_10px,transparent_10px_20px)] opacity-60" />}
+          {project.style === "bus" && (
+            <span className="pointer-events-none absolute inset-y-3 left-1.5 flex flex-col justify-between">
+              {[0, 1, 2, 3].map((k) => (
+                <span key={k} className="h-2.5 w-2.5 rounded-full border-2 border-ink bg-paper" />
+              ))}
+            </span>
+          )}
+          {project.style === "museum" && (
+            <span className="pointer-events-none absolute right-6 top-[30%] grid h-16 w-16 rotate-[-14deg] place-items-center rounded-full border-[3px] border-double border-red text-center text-[9px] font-black uppercase leading-tight text-red opacity-80">
+              Visited
+            </span>
+          )}
+          {project.style === "concert" && <span className="pointer-events-none absolute -right-2 bottom-3 h-10 w-10 rounded-full bg-[radial-gradient(circle,var(--color-butter)_30%,transparent_31%)] [background-size:10px_10px] opacity-70" />}
           <span className="relative flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.2em]">
-            <span>Admit one</span>
-            <span>{project.kind}</span>
+            <span>{STYLE[project.style].top}</span>
+            <span className="hidden sm:inline">{project.kind}</span>
           </span>
           <span className="relative mt-3 block font-display text-[clamp(1.75rem,6vw,2.6rem)] uppercase leading-[0.95]">
             {project.title}
           </span>
           <span className="relative mt-3 flex items-end justify-between gap-3">
-            <span className="text-sm font-semibold">{project.client}</span>
+            <span>
+              <span className="block text-sm font-semibold">{project.client}</span>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">{STYLE[project.style].bottom}</span>
+            </span>
             {/* barcode */}
             <svg viewBox="0 0 60 22" className="h-5 w-14 shrink-0" aria-hidden="true">
               {[0, 3, 5, 9, 12, 14, 18, 21, 25, 27, 31, 35, 37, 41, 44, 47, 51, 54, 57].map((x, i) => (
@@ -123,8 +151,8 @@ export default function Ticket({ project, tilt, onTearStart }: Props) {
 
         {/* ---------- perforation ---------- */}
         <span aria-hidden="true" className={`relative w-0 ${torn ? "opacity-0" : ""}`}>
-          <span className="absolute -left-[10px] -top-[2px] z-10 h-5 w-5 rounded-b-full border-[4px] border-t-0 border-ink bg-paper" />
-          <span className="absolute -left-[10px] -bottom-[2px] z-10 h-5 w-5 rounded-t-full border-[4px] border-b-0 border-ink bg-paper" />
+          <span className="absolute -left-[10px] -top-[2px] z-10 h-5 w-5 rounded-b-full border-[4px] border-t-0 border-ink bg-cream" />
+          <span className="absolute -left-[10px] -bottom-[2px] z-10 h-5 w-5 rounded-t-full border-[4px] border-b-0 border-ink bg-cream" />
           <span className="absolute inset-y-5 -left-[2px] border-l-[4px] border-dashed border-ink" />
           {/* strain marks as you pull */}
           <motion.span style={{ opacity: strain }} className="absolute inset-y-6 -left-[9px] w-[18px] bg-[repeating-linear-gradient(180deg,transparent_0_6px,rgb(19_35_58/0.5)_6px_8px)]" />
@@ -155,6 +183,9 @@ export default function Ticket({ project, tilt, onTearStart }: Props) {
           </span>
         </motion.span>
       </Link>
+      <span aria-hidden="true" className="pointer-events-none absolute -bottom-7 right-4 rotate-[-3deg] font-hand text-xl text-ink-soft opacity-0 transition-opacity duration-300 [li:hover_&]:opacity-100">
+        {STYLE[project.style].note}
+      </span>
     </motion.li>
   );
 }

@@ -27,14 +27,16 @@ export type Project = {
   kind: string;
   /** ticket colour */
   tone: "cream" | "butter" | "sky" | "paper";
+  /** what kind of ticket it's printed as, for the collection */
+  style: "cinema" | "train" | "bus" | "museum" | "concert";
 };
 
 export const projects: Project[] = [
-  { slug: "karnival-dashboard", number: "01", title: "Dashboard Analytics", client: "Karnival · B2B", kind: "Product design", tone: "butter" },
-  { slug: "fnp-point-of-sale", number: "02", title: "Point-of-Sale", client: "Ferns N Petals", kind: "Product design", tone: "cream" },
-  { slug: "woovly-creator-landing", number: "03", title: "Creator Landing Page", client: "Woovly", kind: "UX design", tone: "sky" },
-  { slug: "woovly-revamp", number: "04", title: "Woovly Revamp", client: "Woovly · desktop & mobile", kind: "UX design", tone: "paper" },
-  { slug: "org-psychology-research", number: "05", title: "UX Research", client: "Organisational-psychology backed", kind: "Research", tone: "cream" },
+  { slug: "karnival-dashboard", number: "01", title: "Dashboard Analytics", client: "Karnival · B2B", kind: "Product design", tone: "butter", style: "cinema" },
+  { slug: "fnp-point-of-sale", number: "02", title: "Point-of-Sale", client: "Ferns N Petals", kind: "Product design", tone: "cream", style: "train" },
+  { slug: "woovly-creator-landing", number: "03", title: "Creator Landing Page", client: "Woovly", kind: "UX design", tone: "sky", style: "concert" },
+  { slug: "woovly-revamp", number: "04", title: "Woovly Revamp", client: "Woovly · desktop & mobile", kind: "UX design", tone: "paper", style: "bus" },
+  { slug: "org-psychology-research", number: "05", title: "UX Research", client: "Organisational-psychology backed", kind: "Research", tone: "cream", style: "museum" },
 ];
 
 export const caseStops = [

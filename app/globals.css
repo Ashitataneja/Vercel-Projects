@@ -18,6 +18,8 @@
   --color-rose: #e8588a;
   --color-rose-light: #f7a8c4;
   --color-skin: #f1c29c;
+  --color-stone: #e6c39a;
+  --color-asphalt: #4b5262;
 
   --font-display: "Anton SC", "Impact", sans-serif;
   --font-hand: "Caveat", "Comic Sans MS", cursive;
@@ -92,6 +94,9 @@ body {
   .street-far { bottom: 38%; }
 }
 
+@keyframes ferris { to { transform: rotate(360deg); } }
+.ferris-spin { animation: ferris 18s linear infinite; }
+
 /* TV channel animations */
 @keyframes eq { 0%,100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
 .eq-bar { transform-origin: bottom; animation: eq 0.7s ease-in-out infinite; }
@@ -103,6 +108,20 @@ body {
 .toon-squash { position: relative; animation: squash 0.9s ease-in-out infinite; transform-origin: bottom; }
 @keyframes serial { 0%,30% { transform: translateX(-50%) scale(1); } 34%,64% { transform: translateX(-50%) scale(1.5); } 68%,100% { transform: translateX(-50%) scale(2.2) translateY(8%); } }
 .serial-zoom { animation: serial 2.4s steps(1) infinite; transform-origin: 50% 12%; }
+
+/* Sticker avatar: a waddle while walking, a hop to say hi */
+@keyframes sticker-walk { 0%,100% { transform: translateY(0) rotate(3deg); } 25% { transform: translateY(-3%) rotate(5deg); } 50% { transform: translateY(0) rotate(1deg); } 75% { transform: translateY(-3%) rotate(5deg); } }
+@keyframes sticker-walk-left { 0%,100% { transform: translateY(0) rotate(-3deg); } 25% { transform: translateY(-3%) rotate(-5deg); } 50% { transform: translateY(0) rotate(-1deg); } 75% { transform: translateY(-3%) rotate(-5deg); } }
+@keyframes sticker-hop { 0%,40%,100% { transform: translateY(0); } 15% { transform: translateY(-6%) rotate(-3deg); } 28% { transform: translateY(0); } }
+.sticker-walk { animation: sticker-walk 0.55s ease-in-out infinite; }
+.sticker-walk-left { animation: sticker-walk-left 0.55s ease-in-out infinite; }
+.sticker-hop { animation: sticker-hop 1.4s ease-in-out 3; }
+
+/* Every interactive object is a sticker: white outline + ink drop shadow */
+.sticker {
+  filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(4px 5px 0 rgb(19 35 58 / 0.3));
+}
 
 /* TV static between channels */
 @keyframes static-shift { to { background-position: 40px 30px; } }
@@ -144,7 +163,7 @@ body {
   .rec-blink,
   .clock-hand,
   .av-bob, .av-leg-a, .av-leg-b, .av-arm-a, .av-arm-b, .av-wave,
-  .tv-static, .eq-bar, .reel-spin, .toon-bounce, .toon-squash, .serial-zoom {
+  .tv-static, .ferris-spin, .sticker-walk, .sticker-walk-left, .sticker-hop, .eq-bar, .reel-spin, .toon-bounce, .toon-squash, .serial-zoom {
     animation: none;
   }
   *,

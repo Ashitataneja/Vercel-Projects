@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -7,7 +8,7 @@ import { animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion,
 import Avatar, { type Pose } from "./Avatar";
 import HandNote from "./HandNote";
 import Signboard from "./Signboard";
-import { Bench, Crossroads, FarSkyline, House, Kiosk, PhoneBooth } from "./StreetProps";
+import { Bench, Crossroads, Kiosk, PhoneBooth, TVStall } from "./StreetProps";
 import ModeStrip from "../ModeStrip";
 
 /*
@@ -34,15 +35,25 @@ type Dest = {
 };
 
 const DESTS: Dest[] = [
-  { id: "tv", href: "/tv", left: 30, height: 62, width: 75, stand: 37, label: "Watch TV: Ashita's channels", note: "what's on tonight? →", pose: "wave", fade: "bg-ink" },
-  { id: "work", href: "/work", left: 128, height: 52, width: 41, stand: 120, label: "Box office: Ashita's work, one ticket per project", note: "my ticket collection (my work!)", pose: "stand", fade: "bg-paper" },
-  { id: "about", href: "/about", left: 196, height: 52, width: 47, stand: 196, label: "Signpost: how I got here (About me)", note: "the long way round", pose: "stand", fade: "bg-paper" },
-  { id: "blog", href: "/blog", left: 272, height: 46, width: 45, stand: 266, label: "Bench with my journal: the blog", note: "someone left their diary…", pose: "read", fade: "bg-wood-dark" },
-  { id: "contact", href: "/contact", left: 346, height: 58, width: 29, stand: 338, label: "Telephone booth: contact me", note: "ring me up?", pose: "phone", fade: "bg-paper" },
+  { id: "tv", href: "/tv", left: 46, height: 34, width: 25, stand: 38, label: "TV stall: Ashita's channels", note: "what's on tonight?", pose: "wave", fade: "bg-ink" },
+  { id: "work", href: "/work", left: 250, height: 48, width: 38, stand: 240, label: "Box office: Ashita's work, one ticket per project", note: "my ticket collection (my work!)", pose: "stand", fade: "bg-cream" },
+  { id: "about", href: "/about", left: 392, height: 50, width: 45, stand: 388, label: "Signpost: how I got here (About me)", note: "the long way round", pose: "stand", fade: "bg-paper" },
+  { id: "blog", href: "/blog", left: 532, height: 38, width: 37, stand: 524, label: "Bench with my journal: the blog", note: "someone left their diary…", pose: "read", fade: "bg-wood-dark" },
+  { id: "contact", href: "/contact", left: 672, height: 54, width: 27, stand: 664, label: "Telephone booth: contact me", note: "ring me up?", pose: "phone", fade: "bg-red" },
 ];
-const TRACK = 410; // u
-const AVATAR_H = 36; // u
-const START = 22; // u: by the front door
+
+/** Ashita's painted Delhi, laid end to end behind the pavement. Widths in u (panel height is 76u). */
+const SCENES = [
+  { src: "/world/street.webp", w: 203, alt: "" },
+  { src: "/world/cp.webp", w: 135, alt: "" },
+  { src: "/world/chandnichowk.webp", w: 135, alt: "" },
+  { src: "/world/lodhi.webp", w: 135, alt: "" },
+  { src: "/world/indiagate.webp", w: 135, alt: "" },
+  { src: "/world/qutub.webp", w: 135, alt: "" },
+];
+const TRACK = SCENES.reduce((a, s) => a + s.w, 0); // u
+const AVATAR_H = 34; // u
+const START = 22; // u
 
 const u = (n: number) => `calc(var(--u) * ${n})`;
 
@@ -57,7 +68,6 @@ export default function Street() {
   const [avatarFrac, setAvatarFrac] = useState(0.26);
   const cam = useMotionValue(0); // world px at the left edge of the screen
   const worldX = useTransform(cam, (c) => -c);
-  const farX = useTransform(cam, (c) => -c * 0.3);
   const [here, setHere] = useState<number>(START); // avatar world position, u
   const [walking, setWalking] = useState(false);
   const [facing, setFacing] = useState<"left" | "right">("right");
@@ -74,7 +84,7 @@ export default function Street() {
   const bounds = useCallback(() => {
     const w = mainRef.current?.clientWidth ?? 1000;
     const ax = w * avatarX.current;
-    return { min: -ax + 4 * unit.current, max: TRACK * unit.current - ax - 12 * unit.current, ax };
+    return { min: 0, max: TRACK * unit.current - (mainRef.current?.clientWidth ?? 1000), ax };
   }, []);
 
   const clampCam = useCallback(
@@ -211,7 +221,7 @@ export default function Street() {
   return (
     <main
       ref={mainRef}
-      className="relative h-dvh touch-pan-y select-none overflow-hidden bg-paper [--u:min(1dvh,1.8vw)]"
+      className="relative h-dvh touch-pan-y select-none overflow-clip bg-sky [--u:min(1dvh,1.8vw)]"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -230,32 +240,33 @@ export default function Street() {
           if (zoom && active) router.push(DESTS.find((d) => d.id === active)!.href);
         }}
       >
-        {/* sky */}
-        <div aria-hidden="true" className="halftone absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" />
-        <div aria-hidden="true" className="absolute right-[12%] top-[10%] aspect-square w-[min(14dvh,20vw)] rounded-full border-[4px] border-ink bg-butter" />
-        <motion.div aria-hidden="true" className="street-far absolute left-0 flex h-[22%]" style={{ x: farX }}>
-          {Array.from({ length: 6 }, (_, i) => (
-            <FarSkyline key={i} />
-          ))}
-        </motion.div>
-
         {/* the world */}
         <motion.div className="absolute inset-y-0 left-0" style={{ x: worldX, width: u(TRACK + 200) }}>
+          {/* painted Delhi, end to end */}
+          {SCENES.map((sc, i) => {
+            const left = SCENES.slice(0, i).reduce((a, x) => a + x.w, 0);
+            return (
+              <div key={sc.src} aria-hidden="true" className="street-ground absolute overflow-hidden" style={{ left: u(left), width: u(sc.w + 0.5), height: u(76) }}>
+                <Image src={sc.src} alt={sc.alt} fill priority={i === 0} sizes="(max-width: 640px) 160vw, 140vw" className="object-cover object-bottom" draggable={false} />
+              </div>
+            );
+          })}
           {/* pavement + road */}
-          <div aria-hidden="true" className="street-road absolute bottom-0 left-[-100vw] right-[-100vw] border-t-[5px] border-ink bg-cream">
-            <div className="absolute inset-x-0 top-[22%] h-[78%] border-t-[5px] border-ink bg-ink">
-              <div className="absolute inset-x-0 top-1/2 h-[6px] -translate-y-1/2 bg-[repeating-linear-gradient(90deg,var(--color-butter)_0_48px,transparent_48px_96px)]" />
+          <div aria-hidden="true" className="street-road absolute bottom-0 left-[-100vw] right-[-100vw] border-t-[4px] border-ink bg-stone">
+            <div className="absolute inset-x-0 top-[22%] h-[78%] border-t-[4px] border-ink bg-asphalt">
+              <div className="absolute inset-x-0 -top-[10px] h-[10px] bg-[repeating-linear-gradient(90deg,var(--color-ink)_0_28px,var(--color-paper)_28px_56px)]" />
+              <div className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 bg-[repeating-linear-gradient(90deg,var(--color-paper)_0_48px,transparent_48px_96px)] opacity-80" />
             </div>
           </div>
 
           {/* destinations */}
           {DESTS.map((d) => {
             const Art =
-              d.id === "tv" ? <House tvOn={active === "tv" || near(d)} /> : d.id === "work" ? <Kiosk active={active === "work" || near(d)} /> : d.id === "about" ? <Crossroads /> : d.id === "blog" ? <Bench active={active === "blog" || near(d)} /> : <PhoneBooth active={active === "contact"} />;
+              d.id === "tv" ? <TVStall on={active === "tv" || near(d)} /> : d.id === "work" ? <Kiosk active={active === "work" || near(d)} /> : d.id === "about" ? <Crossroads /> : d.id === "blog" ? <Bench active={active === "blog" || near(d)} /> : <PhoneBooth active={active === "contact"} />;
             const showNote = near(d);
             return (
               <div key={d.id} data-dest={d.id} className="street-ground group absolute" style={{ left: u(d.left), height: u(d.height), width: u(d.width) }}>
-                {Art}
+                <div className="sticker h-full transition-transform duration-300 group-hover:-translate-y-1 group-focus-within:-translate-y-1">{Art}</div>
                 {/* handwritten note: appears when you walk up, hover or focus */}
                 <span
                   aria-hidden="true"
@@ -287,7 +298,7 @@ export default function Street() {
                     onFocus={() => walkTo(d.stand)}
                     aria-label={d.label}
                     draggable={false}
-                    className={`absolute rounded-xl ${d.id === "tv" ? "left-[30%] top-[32%] h-[54%] w-[61%]" : "inset-0"}`}
+                    className="absolute inset-0 rounded-xl"
                   />
                 )}
               </div>
@@ -295,27 +306,28 @@ export default function Street() {
           })}
 
           {/* the end of the road */}
-          <div className="street-ground absolute" style={{ left: u(392) }}>
+          <div className="street-ground absolute" style={{ left: u(TRACK - 70) }}>
             <button
               type="button"
               onClick={() => walkTo(START)}
+              onFocus={() => walkTo(TRACK - 70)}
               className="rotate-[2deg]"
               aria-label="Walk back to the start of the street"
             >
-              <Signboard point="left" tone="cream">Back home</Signboard>
+              <span className="sticker block"><Signboard point="left" tone="cream">Back to the start</Signboard></span>
             </button>
           </div>
         </motion.div>
 
         {/* Ashita, walking */}
         <div className="street-feet pointer-events-none absolute z-10 -translate-x-1/2" style={{ left: `${avatarFrac * 100}%`, height: u(AVATAR_H) }}>
-          <Avatar pose={pose} facing={facing} className="h-full w-auto" />
+          <Avatar pose={pose} facing={facing} className="h-full w-auto" priority />
           {!greeted && (
             <span className="absolute bottom-[86%] left-[78%] w-max max-w-[60vw] rotate-[-4deg] rounded-2xl border-[3px] border-ink bg-paper px-3 py-2 shadow-[3px_3px_0_var(--color-ink)]">
               <HandNote>
                 Hi, I&apos;m Ashita! I design products
                 <br />
-                and interactions. Come for a walk →
+                and interactions. Walk through Delhi with me →
               </HandNote>
             </span>
           )}
@@ -334,7 +346,7 @@ export default function Street() {
       >
         Skip to my work →
       </Link>
-      <p aria-hidden="true" className="absolute left-4 top-4 z-30 hidden font-hand text-xl text-ink-soft sm:block">
+      <p aria-hidden="true" className="absolute left-4 top-4 z-30 hidden rounded-md bg-paper/85 px-2 font-hand text-xl text-ink sm:block">
         scroll, drag or use ← → to walk
       </p>
       <ModeStrip current="/" />

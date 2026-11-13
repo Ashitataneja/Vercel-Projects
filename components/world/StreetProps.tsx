@@ -80,6 +80,40 @@ export function House({ tvOn }: { tvOn: boolean }) {
   );
 }
 
+/* ---------------- TV: a retro set on a little stall ---------------- */
+export function TVStall({ on }: { on: boolean }) {
+  return (
+    <svg viewBox="0 0 220 300" className="h-full w-auto overflow-visible" aria-hidden="true">
+      <path d="M92 70 L60 16 M128 70 L162 20" stroke={INK} strokeWidth="6" strokeLinecap="round" />
+      <circle cx="60" cy="16" r="7" fill={INK} />
+      <circle cx="162" cy="20" r="7" fill={INK} />
+      <path d="M80 74 A30 22 0 0 1 140 74Z" fill={INK} />
+      <rect x="14" y="70" width="192" height="140" rx="22" fill="#C8662E" stroke={INK} strokeWidth={S} />
+      <rect x="28" y="84" width="128" height="112" rx="16" fill={INK} />
+      <rect x="36" y="92" width="112" height="96" rx="12" fill={on ? "#30A0E0" : "#2a3d58"} />
+      {on && (
+        <>
+          <circle cx="126" cy="114" r="10" fill="#FFC973" />
+          <path d="M38 184 L64 152 L82 170 L106 140 L146 184 Z" fill="#FFF6E6" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <rect x="44" y="100" width="34" height="12" rx="2" fill="#FFC973" stroke={INK} strokeWidth="2" />
+        </>
+      )}
+      <path d="M44 100 L70 130" stroke="#fff" strokeWidth="8" opacity=".2" strokeLinecap="round" />
+      <rect x="164" y="84" width="30" height="112" rx="8" fill="#8A3F1C" stroke={INK} strokeWidth="3.5" />
+      <circle cx="179" cy="104" r="9" fill="#FFC973" stroke={INK} strokeWidth="3" />
+      <circle cx="179" cy="130" r="7" fill="#FFE3B3" stroke={INK} strokeWidth="3" />
+      {[150, 160, 170, 180].map((y) => (
+        <line key={y} x1="170" y1={y} x2="188" y2={y} stroke={INK} strokeWidth="3" strokeLinecap="round" />
+      ))}
+      {/* stall table */}
+      <rect x="0" y="210" width="220" height="20" fill="#FFC973" stroke={INK} strokeWidth={S} />
+      <path d="M20 230 L12 300 M200 230 L208 300" stroke={INK} strokeWidth="10" strokeLinecap="round" />
+      <rect x="30" y="236" width="160" height="34" rx="4" fill="#D9482B" stroke={INK} strokeWidth="4" />
+      <text x="110" y="261" textAnchor="middle" fontSize="20" fontWeight="900" letterSpacing="3" fill="#FFF6E6">NOW ON TV</text>
+    </svg>
+  );
+}
+
 /* ---------------- Work: the box-office kiosk ---------------- */
 export function Kiosk({ active }: { active: boolean }) {
   return (
